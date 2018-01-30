@@ -148,20 +148,21 @@ impl<'a> WorkInfo<'a> {
 fn do_main(config: &Config, matches: &Matches) -> CargoResult<()> {
     debug!("running cargo-semver");
     fn parse_arg(opt: &str) -> CargoResult<NameAndVersion> {
-        let mut split = opt.split('-');
+        let mut split = opt.split('=');
         let name = if let Some(n) = split.next() {
-            n
+            // Trim so 'name = version' works
+            n.trim_right()
         } else {
-            return Err("spec has to be of form `name-version`".into());
+            return Err("spec has to be of form `name=version`".into());
         };
         let version = if let Some(v) = split.next() {
-            v
+            v.trim_left()
         } else {
-            return Err("spec has to be of form `name-version`".into());
+            return Err("spec has to be of form `name=version`".into());
         };
 
         if split.next().is_some() {
-            return Err("spec has to be of form `name-version`".into());
+            return Err("spec has to be of form `name=version`".into());
         }
 
         Ok(NameAndVersion { name: name, version: version })
@@ -270,9 +271,9 @@ fn main() {
     opts.optflag("d", "debug", "print command to debug and exit");
     opts.optopt("s", "stable-path", "use local path as stable/old crate", "PATH");
     opts.optopt("c", "current-path", "use local path as current/new crate", "PATH");
-    opts.optopt("S", "stable-pkg", "use a name-version string as stable/old crate",
+    opts.optopt("S", "stable-pkg", "use a name=version string as stable/old crate",
                 "SPEC");
-    opts.optopt("C", "current-pkg", "use a name-version string as current/new crate",
+    opts.optopt("C", "current-pkg", "use a name=version string as current/new crate",
                 "SPEC");
 
     let config = match Config::default() {
