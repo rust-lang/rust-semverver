@@ -10,8 +10,8 @@ macro_rules! full_test {
         fn $name() {
             let mut success = true;
 
-            let old_version = concat!($crate_name, "-", $old_version);
-            let new_version = concat!($crate_name, "-", $new_version);
+            let old_version = concat!($crate_name, "=", $old_version);
+            let new_version = concat!($crate_name, "=", $new_version);
 
             let prog = concat!(r#"
 # wait for the actual output
@@ -29,7 +29,7 @@ macro_rules! full_test {
     print;
 }"#, $crate_name, $crate_name);
             let out_file = Path::new("tests/full_cases")
-                .join(concat!($crate_name, "-", $old_version, "-", $new_version));
+                .join(concat!($crate_name, "=", $old_version, "=", $new_version));
 
             if let Some(path) = env::var_os("PATH") {
                 let mut paths = env::split_paths(&path).collect::<Vec<_>>();
