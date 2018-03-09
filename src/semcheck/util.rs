@@ -9,7 +9,6 @@ use rustc::ty::TyCtxt;
 use rustc_data_structures::sync::Lrc;
 
 // Start of code copied from rust-clippy
-
 pub fn get_trait_def_id(tcx: &TyCtxt, path: &[&str], use_local: bool) -> Option<DefId> {
     if use_local {
         path_to_def_local(tcx, path)

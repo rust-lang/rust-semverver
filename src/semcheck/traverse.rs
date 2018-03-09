@@ -22,7 +22,7 @@ use semcheck::changes::ChangeSet;
 use semcheck::mapping::{IdMapping, NameMapping};
 use semcheck::mismatch::MismatchRelation;
 use semcheck::translate::TranslationContext;
-use semcheck::typeck::{BoundContext, TypeComparisonContext};
+use semcheck::typeck::{AutoTraitTable, BoundContext, TypeComparisonContext};
 
 use std::collections::{BTreeMap, HashSet, VecDeque};
 
@@ -48,9 +48,10 @@ pub fn run_analysis<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>, old: DefId, new: DefI
     }
 
     // third pass
+    let auto_trait_table = AutoTraitTable::new(&tcx).unwrap(); // TODO
     debug!("third pass started");
     for (old, new) in id_mapping.items() {
-        diff_types(&mut changes, &id_mapping, tcx, old, new);
+        diff_types(&mut changes, &id_mapping, tcx, &auto_trait_table, old, new);
     }
 
     // fourth pass on impls
@@ -652,6 +653,7 @@ fn diff_generics(changes: &mut ChangeSet,
 fn diff_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                         id_mapping: &IdMapping,
                         tcx: TyCtxt<'a, 'tcx, 'tcx>,
+                        auto_trait_table: &AutoTraitTable,
                         old: Def,
                         new: Def) {
     use rustc::hir::def::Def::*;
@@ -672,6 +674,7 @@ fn diff_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
             cmp_types(changes,
                       id_mapping,
                       tcx,
+                      None,
                       old_def_id,
                       new_def_id,
                       tcx.type_of(old_def_id),
@@ -685,6 +688,7 @@ fn diff_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
             cmp_types(changes,
                       id_mapping,
                       tcx,
+                      None,
                       old_def_id,
                       new_def_id,
                       tcx.mk_fn_ptr(old_fn_sig),
@@ -697,7 +701,14 @@ fn diff_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                     let o_ty = tcx.type_of(o_def_id);
                     let n_ty = tcx.type_of(n_def_id);
 
-                    cmp_types(changes, id_mapping, tcx, old_def_id, new_def_id, o_ty, n_ty);
+                    cmp_types(changes,
+                              id_mapping,
+                              tcx,
+                              Some(auto_trait_table),
+                              old_def_id,
+                              new_def_id,
+                              o_ty,
+                              n_ty);
                 }
             }
         },
@@ -713,6 +724,7 @@ fn diff_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
 fn cmp_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                        id_mapping: &IdMapping,
                        tcx: TyCtxt<'a, 'tcx, 'tcx>,
+                       auto_trait_tables: Option<&AutoTraitTable>,
                        orig_def_id: DefId,
                        target_def_id: DefId,
                        orig: Ty<'tcx>,
@@ -750,7 +762,7 @@ fn cmp_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                                               target_def_id,
                                               orig_substs,
                                               target_substs,
-                                              None); // TODO: pass in tables
+                                              auto_trait_tables);
         }
     });
 }

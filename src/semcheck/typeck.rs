@@ -20,6 +20,28 @@ pub struct AutoTraitTable {
     sync_did: DefId,
 }
 
+impl AutoTraitTable {
+    pub fn new(tcx: &TyCtxt) -> Option<Self> {
+        // TODO: use the local method if possible
+        use semcheck::util::get_trait_def_id;
+        let send_did =
+            if let Some(did) = get_trait_def_id(tcx, &["core", "marker", "Send"], false) {
+                did
+            } else {
+                return None;
+            };
+
+        let sync_did =
+            if let Some(did) = get_trait_def_id(tcx, &["core", "marker", "Sync"], false) {
+                did
+            } else {
+                return None;
+            };
+
+        Some(AutoTraitTable { send_did, sync_did, })
+    }
+}
+
 /// The context in which bounds analysis happens.
 pub struct BoundContext<'a, 'gcx: 'a + 'tcx, 'tcx: 'a> {
     /// The inference context to use.
