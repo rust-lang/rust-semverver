@@ -8,5 +8,6 @@ mod mismatch;
 mod translate;
 mod traverse;
 mod typeck;
+mod util;
 
 pub use self::traverse::run_analysis;

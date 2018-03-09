@@ -749,12 +749,16 @@ fn cmp_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                                               orig_def_id,
                                               target_def_id,
                                               orig_substs,
-                                              target_substs);
+                                              target_substs,
+                                              None); // TODO: pass in tables
         }
     });
 }
 
 /// Compare the trait bounds of two items, possibly registering the resulting change.
+///
+/// This is separate from cmp_types as some items, notably traits, don't allow for meaningful
+/// comparison of type, but do have bounds that can be subject to change.
 fn cmp_bounds<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                         id_mapping: &IdMapping,
                         tcx: TyCtxt<'a, 'tcx, 'tcx>,
@@ -773,7 +777,8 @@ fn cmp_bounds<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                                           orig_def_id,
                                           target_def_id,
                                           orig_substs,
-                                          target_substs);
+                                          target_substs,
+                                          None);
     })
 }
 
@@ -1006,7 +1011,8 @@ fn match_inherent_impl<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                                               orig_item_def_id,
                                               target_item_def_id,
                                               orig_substs,
-                                              target_substs);
+                                              target_substs,
+                                              None);
         }
 
         true

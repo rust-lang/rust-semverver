@@ -15,6 +15,11 @@ use semcheck::changes::ChangeSet;
 use semcheck::mapping::IdMapping;
 use semcheck::translate::{InferenceCleanupFolder, TranslationContext};
 
+pub struct AutoTraitTable {
+    send_did: DefId,
+    sync_did: DefId,
+}
+
 /// The context in which bounds analysis happens.
 pub struct BoundContext<'a, 'gcx: 'a + 'tcx, 'tcx: 'a> {
     /// The inference context to use.
@@ -259,7 +264,8 @@ impl<'a, 'gcx, 'tcx> TypeComparisonContext<'a, 'gcx, 'tcx> {
                                                  orig_def_id: DefId,
                                                  target_def_id: DefId,
                                                  orig_substs: &Substs<'tcx>,
-                                                 target_substs: &Substs<'tcx>) {
+                                                 target_substs: &Substs<'tcx>,
+                                                 auto_trait_table: Option<&AutoTraitTable>) {
         use semcheck::changes::ChangeType::{BoundsLoosened, BoundsTightened};
 
         let tcx = self.infcx.tcx;
