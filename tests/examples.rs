@@ -100,6 +100,7 @@ macro_rules! test {
 test!(addition);
 test!(addition_path);
 test!(addition_use);
+test!(auto_traits);
 test!(bounds);
 test!(circular);
 test!(consts);

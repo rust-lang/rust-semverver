@@ -22,7 +22,8 @@ use semcheck::changes::ChangeSet;
 use semcheck::mapping::{IdMapping, NameMapping};
 use semcheck::mismatch::MismatchRelation;
 use semcheck::translate::TranslationContext;
-use semcheck::typeck::{AutoTraitTable, BoundContext, TypeComparisonContext};
+use semcheck::typeck::{AutoTraitComparisonContext, AutoTraitTable,
+                       BoundContext, TypeComparisonContext};
 
 use std::collections::{BTreeMap, HashSet, VecDeque};
 
@@ -674,7 +675,6 @@ fn diff_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
             cmp_types(changes,
                       id_mapping,
                       tcx,
-                      None,
                       old_def_id,
                       new_def_id,
                       tcx.type_of(old_def_id),
@@ -688,7 +688,6 @@ fn diff_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
             cmp_types(changes,
                       id_mapping,
                       tcx,
-                      None,
                       old_def_id,
                       new_def_id,
                       tcx.mk_fn_ptr(old_fn_sig),
@@ -704,13 +703,20 @@ fn diff_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                     cmp_types(changes,
                               id_mapping,
                               tcx,
-                              Some(auto_trait_table),
                               old_def_id,
                               new_def_id,
                               o_ty,
                               n_ty);
+
                 }
             }
+
+            cmp_auto_traits(changes,
+                            id_mapping,
+                            tcx,
+                            auto_trait_table,
+                            old_def_id,
+                            new_def_id);
         },
         // a trait definition has no type, so only it's trait bounds are compared
         Trait(_) => {
@@ -720,11 +726,23 @@ fn diff_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
     }
 }
 
+fn cmp_auto_traits<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
+                             id_mapping: &IdMapping,
+                             tcx: TyCtxt<'a, 'tcx, 'tcx>,
+                             auto_trait_table: &AutoTraitTable,
+                             orig_def_id: DefId,
+                             target_def_id: DefId) {
+    info!("comparing auto trait impls of {:?} / {:?}", orig_def_id, target_def_id);
+    let compcx = AutoTraitComparisonContext::new(&tcx, auto_trait_table);
+
+    compcx.check_auto_trait_bounds(orig_def_id, target_def_id);
+    compcx.check_auto_trait_bounds(target_def_id, orig_def_id);
+}
+
 /// Compare two types and their trait bounds, possibly registering the resulting change.
 fn cmp_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                        id_mapping: &IdMapping,
                        tcx: TyCtxt<'a, 'tcx, 'tcx>,
-                       auto_trait_tables: Option<&AutoTraitTable>,
                        orig_def_id: DefId,
                        target_def_id: DefId,
                        orig: Ty<'tcx>,
@@ -761,8 +779,7 @@ fn cmp_types<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                                               orig_def_id,
                                               target_def_id,
                                               orig_substs,
-                                              target_substs,
-                                              auto_trait_tables);
+                                              target_substs);
         }
     });
 }
@@ -789,8 +806,7 @@ fn cmp_bounds<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                                           orig_def_id,
                                           target_def_id,
                                           orig_substs,
-                                          target_substs,
-                                          None);
+                                          target_substs);
     })
 }
 
@@ -1023,8 +1039,7 @@ fn match_inherent_impl<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                                               orig_item_def_id,
                                               target_item_def_id,
                                               orig_substs,
-                                              target_substs,
-                                              None);
+                                              target_substs);
         }
 
         true

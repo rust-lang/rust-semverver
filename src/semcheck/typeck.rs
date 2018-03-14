@@ -13,6 +13,8 @@ use rustc::ty::error::TypeError;
 use rustc::ty::fold::TypeFoldable;
 use rustc::ty::subst::Substs;
 
+use rustc_data_structures::fx::FxHashSet;
+
 use semcheck::changes::ChangeSet;
 use semcheck::mapping::IdMapping;
 use semcheck::translate::{InferenceCleanupFolder, TranslationContext};
@@ -41,6 +43,12 @@ impl AutoTraitTable {
             };
 
         Some(AutoTraitTable { send_did, sync_did, })
+    }
+
+    pub fn all_auto_traits(&self) -> impl Iterator<Item=(DefId, &'static str)> {
+        use std::iter::once;
+
+        once((self.send_did, "Send")).chain(once((self.sync_did, "Sync")))
     }
 }
 
@@ -288,8 +296,7 @@ impl<'a, 'gcx, 'tcx> TypeComparisonContext<'a, 'gcx, 'tcx> {
                                                  orig_def_id: DefId,
                                                  target_def_id: DefId,
                                                  orig_substs: &Substs<'tcx>,
-                                                 target_substs: &Substs<'tcx>,
-                                                 auto_trait_table: Option<&AutoTraitTable>) {
+                                                 target_substs: &Substs<'tcx>) {
         use semcheck::changes::ChangeType::{BoundsLoosened, BoundsTightened};
 
         let tcx = self.infcx.tcx;
@@ -337,6 +344,64 @@ impl<'a, 'gcx, 'tcx> TypeComparisonContext<'a, 'gcx, 'tcx> {
 
                 changes.add_change(err_type, orig_def_id, None);
             }
+        }
+    }
+}
+
+/// The context in which auto trait bounds are compared.
+///
+/// TODO: explain why we need this.
+pub struct AutoTraitComparisonContext<'a, 'tcx: 'a> {
+    tcx: &'a TyCtxt<'a, 'tcx, 'tcx>,
+    auto_trait_table: &'a AutoTraitTable,
+}
+
+impl<'a, 'tcx> AutoTraitComparisonContext<'a, 'tcx> {
+    pub fn new(tcx: &'a TyCtxt<'a, 'tcx, 'tcx>, auto_trait_table: &'a AutoTraitTable) -> Self {
+        AutoTraitComparisonContext { tcx, auto_trait_table }
+    }
+
+    pub fn check_auto_trait_bounds(&self,
+                                   orig_def_id: DefId,
+                                   target_def_id: DefId) {
+        let orig_ty = self.tcx.type_of(orig_def_id);
+        let orig_param_env = self.tcx.param_env(orig_def_id);
+        let auto_trait_finder = auto_trait::AutoTraitFinder { tcx: self.tcx };
+
+        for (trait_def_id, trait_name) in self.auto_trait_table.all_auto_traits() {
+            self.tcx.infer_ctxt().enter(|mut infcx| {
+                let mut fresh_preds = FxHashSet();
+                let (full_env1, user_env1) = match auto_trait_finder.evaluate_predicates(
+                        &mut infcx,
+                        orig_def_id,
+                        trait_def_id,
+                        orig_ty,
+                        orig_param_env.clone(),
+                        orig_param_env,
+                        &mut fresh_preds,
+                        false) {
+                    Some(e) => e,
+                    None => {
+                        debug!("negative impl found.");
+                        return;
+                    },
+                };
+
+                let full_env = auto_trait_finder.evaluate_predicates(
+                    &mut infcx,
+                    orig_def_id,
+                    trait_def_id,
+                    orig_ty,
+                    full_env1.clone(),
+                    user_env1,
+                    &mut fresh_preds,
+                    true
+                ).unwrap_or_else(||
+                    panic!("Failed to fully process: {:?} {:?} {:?}",
+                           orig_ty, trait_def_id, orig_param_env)).0;
+
+                debug!("determined param env for auto trait: {:?}", full_env);
+            });
         }
     }
 }
