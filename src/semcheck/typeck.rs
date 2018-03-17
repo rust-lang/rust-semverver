@@ -352,56 +352,193 @@ impl<'a, 'gcx, 'tcx> TypeComparisonContext<'a, 'gcx, 'tcx> {
 ///
 /// TODO: explain why we need this.
 pub struct AutoTraitComparisonContext<'a, 'tcx: 'a> {
-    tcx: &'a TyCtxt<'a, 'tcx, 'tcx>,
+    tcx: TyCtxt<'a, 'tcx, 'tcx>,
+    id_mapping: &'a IdMapping,
     auto_trait_table: &'a AutoTraitTable,
+    // folder: InferenceCleanupFolder<'a, 'tcx, 'tcx>,
+    forward_trans: TranslationContext<'a, 'tcx, 'tcx>,
+    backward_trans: TranslationContext<'a, 'tcx, 'tcx>,
 }
 
 impl<'a, 'tcx> AutoTraitComparisonContext<'a, 'tcx> {
-    pub fn new(tcx: &'a TyCtxt<'a, 'tcx, 'tcx>, auto_trait_table: &'a AutoTraitTable) -> Self {
-        AutoTraitComparisonContext { tcx, auto_trait_table }
+    pub fn target_new(tcx: TyCtxt<'a, 'tcx, 'tcx>,
+                      id_mapping: &'a IdMapping,
+                      auto_trait_tables: &'a AutoTraitTable) -> Self {
+        let forward_trans = TranslationContext::target_new(tcx, id_mapping, false);
+        let backward_trans = TranslationContext::target_old(tcx, id_mapping, false);
+
+        AutoTraitComparisonContext::from_trans(tcx,
+                                               id_mapping,
+                                               auto_trait_tables,
+                                               forward_trans,
+                                               backward_trans)
     }
 
-    pub fn check_auto_trait_bounds(&self,
-                                   orig_def_id: DefId,
-                                   target_def_id: DefId) {
+    pub fn target_old(tcx: TyCtxt<'a, 'tcx, 'tcx>,
+                      id_mapping: &'a IdMapping,
+                      auto_trait_tables: &'a AutoTraitTable) -> Self {
+        let forward_trans = TranslationContext::target_old(tcx, id_mapping, false);
+        let backward_trans = TranslationContext::target_new(tcx, id_mapping, false);
+
+        AutoTraitComparisonContext::from_trans(tcx,
+                                               id_mapping,
+                                               auto_trait_tables,
+                                               forward_trans,
+                                               backward_trans)
+    }
+
+    pub fn from_trans(tcx: TyCtxt<'a, 'tcx, 'tcx>,
+                      id_mapping: &'a IdMapping,
+                      auto_trait_table: &'a AutoTraitTable,
+                      forward_trans: TranslationContext<'a, 'tcx, 'tcx>,
+                      backward_trans: TranslationContext<'a, 'tcx, 'tcx>) -> Self {
+        AutoTraitComparisonContext {
+            tcx,
+            id_mapping,
+            auto_trait_table,
+            forward_trans,
+            backward_trans,
+        }
+    }
+
+    pub fn check_all_auto_trait_bounds_bidirectional(&self,
+                                                     orig_def_id: DefId,
+                                                     target_def_id: DefId) {
+        for (trait_def_id, trait_name) in self.auto_trait_table.all_auto_traits() {
+            self.check_auto_trait_bounds_bidirectional(orig_def_id, target_def_id, trait_def_id);
+        }
+    }
+
+    pub fn check_auto_trait_bounds_bidirectional(&self,
+                                                 orig_def_id: DefId,
+                                                 target_def_id: DefId,
+                                                 trait_def_id: DefId) {
+        use rustc::ty::ReEarlyBound;
+
+        let orig_substs = Substs::identity_for_item(self.tcx, target_def_id);
+        let target_substs = Substs::for_item(self.tcx, target_def_id, |def, _| {
+            self.tcx.mk_region(ReEarlyBound(def.to_early_bound_region_data()))
+        }, |def, _| if self.id_mapping.is_non_mapped_defaulted_type_param(&def.def_id) {
+            self.tcx.type_of(def.def_id)
+        } else {
+            self.tcx.mk_param_from_def(def)
+        });
+
+        let orig_param_env = if let Some(orig_param_env) = self
+                .get_auto_trait_bounds_param_env(orig_def_id, trait_def_id)
+                .and_then(|env| self.forward_trans.translate_param_env(orig_def_id, env)) {
+            debug!("orig param env for {:?}, {:?}: {:?}",
+                   orig_def_id, trait_def_id, orig_param_env);
+            orig_param_env
+        } else {
+            error!("could not determine orig param env for {:?}, {:?}",
+                   orig_def_id, trait_def_id);
+            return;
+        };
+
+        if let Some(errors) =
+            self.check_bounds_error(orig_param_env, target_def_id, target_substs)
+        {
+            for err in errors {
+                info!("found an error for auto traits: {:?}", err);
+            }
+
+            // TODO: add the changes
+        }
+
+        let target_param_env = if let Some(target_param_env) = self
+                .get_auto_trait_bounds_param_env(target_def_id, trait_def_id)
+                .and_then(|env| self.backward_trans.translate_param_env(target_def_id, env)) {
+            debug!("target param env for {:?}, {:?}: {:?}",
+                   target_def_id, trait_def_id, target_param_env);
+            target_param_env
+        } else {
+            error!("could not determine target param env for {:?}, {:?}",
+                   target_def_id, trait_def_id);
+            return;
+        };
+
+        if let Some(errors) =
+            self.check_bounds_error(target_param_env, orig_def_id, orig_substs)
+        {
+            for err in errors {
+                info!("found an error for auto traits: {:?}", err);
+            }
+
+            // TODO: add the changes
+        }
+
+    }
+
+    pub fn check_bounds_error(&self,
+                              orig_param_env: ParamEnv<'tcx>,
+                              target_def_id: DefId,
+                              target_substs: &Substs<'tcx>) -> Option<Vec<Predicate<'tcx>>> {
+        use rustc::ty::Lift;
+        debug!("check_bounds_error(2): orig env: {:?}, target did: {:?}, target substs: {:?}",
+               orig_param_env,
+               target_def_id,
+               target_substs);
+
+        self.tcx.infer_ctxt().enter(|infcx| {
+            let mut bound_cx = BoundContext::new(&infcx, orig_param_env);
+            bound_cx.register(target_def_id, target_substs);
+
+            bound_cx
+                .get_errors()
+                .map(|errors| errors
+                     .iter()
+                     .map(|err|
+                          infcx
+                              .resolve_type_vars_if_possible(&err.obligation.predicate)
+                              .fold_with(&mut InferenceCleanupFolder::new(&infcx))
+                              .lift_to_tcx(self.tcx)
+                              .unwrap())
+                .collect())
+        })
+    }
+
+    pub fn get_auto_trait_bounds_param_env(&self,
+                                           orig_def_id: DefId,
+                                           trait_def_id: DefId) -> Option<ParamEnv<'tcx>> {
+        use rustc::ty::Lift;
+
         let orig_ty = self.tcx.type_of(orig_def_id);
         let orig_param_env = self.tcx.param_env(orig_def_id);
-        let auto_trait_finder = auto_trait::AutoTraitFinder { tcx: self.tcx };
+        let auto_trait_finder = auto_trait::AutoTraitFinder { tcx: &self.tcx };
 
-        for (trait_def_id, trait_name) in self.auto_trait_table.all_auto_traits() {
-            self.tcx.infer_ctxt().enter(|mut infcx| {
-                let mut fresh_preds = FxHashSet();
-                let (full_env1, user_env1) = match auto_trait_finder.evaluate_predicates(
-                        &mut infcx,
-                        orig_def_id,
-                        trait_def_id,
-                        orig_ty,
-                        orig_param_env.clone(),
-                        orig_param_env,
-                        &mut fresh_preds,
-                        false) {
-                    Some(e) => e,
-                    None => {
-                        debug!("negative impl found.");
-                        return;
-                    },
-                };
-
-                let full_env = auto_trait_finder.evaluate_predicates(
+        self.tcx.infer_ctxt().enter(|mut infcx| {
+            let mut fresh_preds = FxHashSet();
+            let (full_env1, user_env1) = match auto_trait_finder.evaluate_predicates(
                     &mut infcx,
                     orig_def_id,
                     trait_def_id,
                     orig_ty,
-                    full_env1.clone(),
-                    user_env1,
+                    orig_param_env.clone(),
+                    orig_param_env,
                     &mut fresh_preds,
-                    true
-                ).unwrap_or_else(||
-                    panic!("Failed to fully process: {:?} {:?} {:?}",
-                           orig_ty, trait_def_id, orig_param_env)).0;
+                    false) {
+                Some(e) => e,
+                None => {
+                    debug!("negative impl found.");
+                    return None;
+                },
+            };
 
-                debug!("determined param env for auto trait: {:?}", full_env);
-            });
-        }
+            let full_env = auto_trait_finder.evaluate_predicates(
+                &mut infcx,
+                orig_def_id,
+                trait_def_id,
+                orig_ty,
+                full_env1.clone(),
+                user_env1,
+                &mut fresh_preds,
+                true
+            ).unwrap_or_else(||
+                panic!("Failed to fully process: {:?} {:?} {:?}",
+                       orig_ty, trait_def_id, orig_param_env)).0;
+
+            full_env.lift_to_tcx(self.tcx) // TODO: does this work properly?
+        })
     }
 }

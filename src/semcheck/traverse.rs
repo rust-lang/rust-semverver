@@ -733,10 +733,8 @@ fn cmp_auto_traits<'a, 'tcx>(changes: &mut ChangeSet<'tcx>,
                              orig_def_id: DefId,
                              target_def_id: DefId) {
     info!("comparing auto trait impls of {:?} / {:?}", orig_def_id, target_def_id);
-    let compcx = AutoTraitComparisonContext::new(&tcx, auto_trait_table);
-
-    compcx.check_auto_trait_bounds(orig_def_id, target_def_id);
-    compcx.check_auto_trait_bounds(target_def_id, orig_def_id);
+    let compcx = AutoTraitComparisonContext::target_new(tcx, id_mapping, auto_trait_table);
+    compcx.check_all_auto_trait_bounds_bidirectional(orig_def_id, target_def_id);
 }
 
 /// Compare two types and their trait bounds, possibly registering the resulting change.
