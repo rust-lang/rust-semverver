@@ -439,11 +439,14 @@ impl<'a, 'tcx> AutoTraitComparisonContext<'a, 'tcx> {
         if let Some(errors) =
             self.check_bounds_error(orig_param_env, target_def_id, target_substs)
         {
+            info!("auto trait errors are present");
             for err in errors {
                 info!("found an error for auto traits: {:?}", err);
             }
 
             // TODO: add the changes
+        } else {
+            info!("no auto trait errors");
         }
 
         let target_param_env = if let Some(target_param_env) = self
@@ -461,11 +464,14 @@ impl<'a, 'tcx> AutoTraitComparisonContext<'a, 'tcx> {
         if let Some(errors) =
             self.check_bounds_error(target_param_env, orig_def_id, orig_substs)
         {
+            info!("auto trait errors are present");
             for err in errors {
                 info!("found an error for auto traits: {:?}", err);
             }
 
             // TODO: add the changes
+        } else {
+            info!("no auto trait errors");
         }
 
     }
@@ -483,6 +489,8 @@ impl<'a, 'tcx> AutoTraitComparisonContext<'a, 'tcx> {
         self.tcx.infer_ctxt().enter(|infcx| {
             let mut bound_cx = BoundContext::new(&infcx, orig_param_env);
             bound_cx.register(target_def_id, target_substs);
+
+            debug!("get_errors(): {:?}", bound_cx.get_errors());
 
             bound_cx
                 .get_errors()
