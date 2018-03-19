@@ -71,7 +71,7 @@ impl<'a> fmt::Display for ChangeCategory {
 pub enum Name {
     /// The changed item's name.
     Symbol(Symbol),
-    /// A textutal description of the item, used for trait impls.
+    /// A textutal description of the item, used for (possibly negative) trait impls.
     ImplDesc(String),
 }
 
@@ -262,6 +262,10 @@ pub enum ChangeType<'tcx> {
     TraitImplTightened,
     /// A trait impl has been generalized or newly added for some type(s).
     TraitImplLoosened,
+    /// An auto trait impl has been specialized for some type(s).
+    AutoTraitImplTightened,
+    /// An auto trait impl has been looseneed for some type(s).
+    AutoTraitImplLoosened,
     /// An associated item has been newly added to some inherent impls.
     AssociatedItemAdded,
     /// An associated item has been removed from some inherent impls.
@@ -300,6 +304,7 @@ impl<'tcx> ChangeType<'tcx> {
             BoundsTightened { .. } |
             BoundsLoosened { trait_def: true, .. } |
             TraitImplTightened |
+            AutoTraitImplTightened |
             AssociatedItemRemoved |
             Unknown => Breaking,
             MethodSelfChanged { now_self: true } |
@@ -311,7 +316,8 @@ impl<'tcx> ChangeType<'tcx> {
             StaticMutabilityChanged { now_mut: true } |
             VarianceLoosened |
             TypeParameterAdded { defaulted: true } |
-            FnConstChanged { now_const: true } => NonBreaking,
+            FnConstChanged { now_const: true } |
+            AutoTraitImplLoosened => NonBreaking,
         }
     }
 
@@ -427,6 +433,15 @@ methods on the type become invalid.",
 parametrized) type is a breaking change in some specific situations,
 as name clashes with other trait implementations in user code can be
 caused.",
+            AutoTraitImplTightened =>
+"The implementation for an auto trait provided by the compiler for a
+(possibly parametrized) type has been constrainted further, which breaks
+user code that requires the auto trait in question to be implemented.",
+            AutoTraitImplLoosened =>
+"The implementation for an auto trait provided by the compiler for a
+(possibly parametrized) type has been generalized, which allows user code
+to depend on the feature of the auto trait in question, which obviously
+is a strictly non-breaking change.",
             AssociatedItemAdded =>
 "Adding a new associated item is a breaking change in some specific
 situations, <TODO>.",
@@ -504,6 +519,8 @@ impl<'a> fmt::Display for ChangeType<'a> {
                 },
             TraitImplTightened => "trait impl specialized or removed",
             TraitImplLoosened => "trait impl generalized or newly added",
+            AutoTraitImplTightened => "automatic trait impl specialized or made impossible",
+            AutoTraitImplLoosened => "automatic trait impl generalized or newly added",
             AssociatedItemAdded => "added item in inherent impl",
             AssociatedItemRemoved => "removed item in inherent impl",
             Unknown => "unknown change",
@@ -588,6 +605,8 @@ impl<'tcx> Change<'tcx> {
                 BoundsLoosened { .. } |
                 TraitImplTightened |
                 TraitImplLoosened |
+                AutoTraitImplTightened |
+                AutoTraitImplLoosened |
                 AssociatedItemAdded |
                 AssociatedItemRemoved => (),
             }
