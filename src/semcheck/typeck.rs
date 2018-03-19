@@ -431,7 +431,7 @@ impl<'a, 'tcx> AutoTraitComparisonContext<'a, 'tcx> {
                    orig_def_id, trait_def_id, orig_param_env);
             orig_param_env
         } else {
-            error!("could not determine orig param env for {:?}, {:?}",
+            info!("could not determine orig param env for {:?}, {:?}",
                    orig_def_id, trait_def_id);
             return;
         };
@@ -456,7 +456,7 @@ impl<'a, 'tcx> AutoTraitComparisonContext<'a, 'tcx> {
                    target_def_id, trait_def_id, target_param_env);
             target_param_env
         } else {
-            error!("could not determine target param env for {:?}, {:?}",
+            info!("could not determine target param env for {:?}, {:?}",
                    target_def_id, trait_def_id);
             return;
         };
