@@ -263,9 +263,9 @@ pub enum ChangeType<'tcx> {
     /// A trait impl has been generalized or newly added for some type(s).
     TraitImplLoosened,
     /// An auto trait impl has been specialized for some type(s).
-    AutoTraitImplTightened,
+    AutoTraitImplTightened(String),
     /// An auto trait impl has been looseneed for some type(s).
-    AutoTraitImplLoosened,
+    AutoTraitImplLoosened(String),
     /// An associated item has been newly added to some inherent impls.
     AssociatedItemAdded,
     /// An associated item has been removed from some inherent impls.
@@ -304,7 +304,7 @@ impl<'tcx> ChangeType<'tcx> {
             BoundsTightened { .. } |
             BoundsLoosened { trait_def: true, .. } |
             TraitImplTightened |
-            AutoTraitImplTightened |
+            AutoTraitImplTightened(_) |
             AssociatedItemRemoved |
             Unknown => Breaking,
             MethodSelfChanged { now_self: true } |
@@ -317,7 +317,7 @@ impl<'tcx> ChangeType<'tcx> {
             VarianceLoosened |
             TypeParameterAdded { defaulted: true } |
             FnConstChanged { now_const: true } |
-            AutoTraitImplLoosened => NonBreaking,
+            AutoTraitImplLoosened(_) => NonBreaking,
         }
     }
 
@@ -433,11 +433,11 @@ methods on the type become invalid.",
 parametrized) type is a breaking change in some specific situations,
 as name clashes with other trait implementations in user code can be
 caused.",
-            AutoTraitImplTightened =>
+            AutoTraitImplTightened(_) =>
 "The implementation for an auto trait provided by the compiler for a
 (possibly parametrized) type has been constrainted further, which breaks
 user code that requires the auto trait in question to be implemented.",
-            AutoTraitImplLoosened =>
+            AutoTraitImplLoosened(_) =>
 "The implementation for an auto trait provided by the compiler for a
 (possibly parametrized) type has been generalized, which allows user code
 to depend on the feature of the auto trait in question, which obviously
@@ -519,8 +519,14 @@ impl<'a> fmt::Display for ChangeType<'a> {
                 },
             TraitImplTightened => "trait impl specialized or removed",
             TraitImplLoosened => "trait impl generalized or newly added",
-            AutoTraitImplTightened => "automatic trait impl specialized or made impossible",
-            AutoTraitImplLoosened => "automatic trait impl generalized or newly added",
+            AutoTraitImplTightened(ref trait_name) =>
+                return write!(f,
+                              "automatic trait impl of `{}` specialized or made impossible",
+                              trait_name),
+            AutoTraitImplLoosened(ref trait_name) =>
+                return write!(f,
+                              "automatic trait impl of `{}` generalized or newly added",
+                              trait_name),
             AssociatedItemAdded => "added item in inherent impl",
             AssociatedItemRemoved => "removed item in inherent impl",
             Unknown => "unknown change",
@@ -605,8 +611,8 @@ impl<'tcx> Change<'tcx> {
                 BoundsLoosened { .. } |
                 TraitImplTightened |
                 TraitImplLoosened |
-                AutoTraitImplTightened |
-                AutoTraitImplLoosened |
+                AutoTraitImplTightened(_) |
+                AutoTraitImplLoosened(_) |
                 AssociatedItemAdded |
                 AssociatedItemRemoved => (),
             }

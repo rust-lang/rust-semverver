@@ -402,18 +402,27 @@ impl<'a, 'tcx> AutoTraitComparisonContext<'a, 'tcx> {
     }
 
     pub fn check_all_auto_trait_bounds_bidirectional(&self,
+                                                     changes: &mut ChangeSet<'tcx>,
                                                      orig_def_id: DefId,
                                                      target_def_id: DefId) {
         for (trait_def_id, trait_name) in self.auto_trait_table.all_auto_traits() {
-            self.check_auto_trait_bounds_bidirectional(orig_def_id, target_def_id, trait_def_id);
+            self.check_auto_trait_bounds_bidirectional(changes,
+                                                       trait_name,
+                                                       orig_def_id,
+                                                       target_def_id,
+                                                       trait_def_id);
         }
     }
 
     pub fn check_auto_trait_bounds_bidirectional(&self,
+                                                 changes: &mut ChangeSet<'tcx>,
+                                                 trait_name: &str,
                                                  orig_def_id: DefId,
                                                  target_def_id: DefId,
                                                  trait_def_id: DefId) {
         use rustc::ty::ReEarlyBound;
+
+        use semcheck::changes::ChangeType::{AutoTraitImplTightened, AutoTraitImplLoosened};
 
         let orig_substs = Substs::identity_for_item(self.tcx, target_def_id);
         let target_substs = Substs::for_item(self.tcx, target_def_id, |def, _| {
@@ -424,16 +433,40 @@ impl<'a, 'tcx> AutoTraitComparisonContext<'a, 'tcx> {
             self.tcx.mk_param_from_def(def)
         });
 
-        let orig_param_env = if let Some(orig_param_env) = self
-                .get_auto_trait_bounds_param_env(orig_def_id, trait_def_id)
-                .and_then(|env| self.forward_trans.translate_param_env(orig_def_id, env)) {
-            debug!("orig param env for {:?}, {:?}: {:?}",
-                   orig_def_id, trait_def_id, orig_param_env);
-            orig_param_env
-        } else {
-            info!("could not determine orig param env for {:?}, {:?}",
-                   orig_def_id, trait_def_id);
-            return;
+        let orig_param_env =
+            self.get_auto_trait_bounds_param_env(orig_def_id, trait_def_id)
+                .and_then(|env| self.forward_trans.translate_param_env(orig_def_id, env));
+        let target_param_env =
+            self.get_auto_trait_bounds_param_env(target_def_id, trait_def_id)
+                .and_then(|env| self.backward_trans.translate_param_env(target_def_id, env));
+
+        let (orig_param_env, target_param_env) = match (orig_param_env, target_param_env) {
+            (Some(o), Some(t)) => {
+                debug!("orig param env for {:?}, {:?}: {:?}", orig_def_id, trait_def_id, o);
+                debug!("target param env for {:?}, {:?}: {:?}", target_def_id, trait_def_id, t);
+                (o, t)
+            },
+            (Some(_), None) => {
+                info!("could not determine target param env for {:?}, {:?}",
+                      target_def_id, trait_def_id);
+                changes.add_change(AutoTraitImplTightened(trait_name.to_owned()),
+                                   orig_def_id, None);
+                return;
+            },
+            (None, Some(_)) => {
+                info!("could not determine orig param env for {:?}, {:?}",
+                      orig_def_id, trait_def_id);
+                changes.add_change(AutoTraitImplLoosened(trait_name.to_owned()),
+                                   orig_def_id, None);
+                return;
+            },
+            (None, None) => {
+                info!("could not determine orig param env for {:?}, {:?}",
+                      orig_def_id, trait_def_id);
+                info!("could not determine target param env for {:?}, {:?}",
+                      target_def_id, trait_def_id);
+                return;
+            },
         };
 
         if let Some(errors) =
@@ -448,18 +481,6 @@ impl<'a, 'tcx> AutoTraitComparisonContext<'a, 'tcx> {
         } else {
             info!("no auto trait errors");
         }
-
-        let target_param_env = if let Some(target_param_env) = self
-                .get_auto_trait_bounds_param_env(target_def_id, trait_def_id)
-                .and_then(|env| self.backward_trans.translate_param_env(target_def_id, env)) {
-            debug!("target param env for {:?}, {:?}: {:?}",
-                   target_def_id, trait_def_id, target_param_env);
-            target_param_env
-        } else {
-            info!("could not determine target param env for {:?}, {:?}",
-                   target_def_id, trait_def_id);
-            return;
-        };
 
         if let Some(errors) =
             self.check_bounds_error(target_param_env, orig_def_id, orig_substs)

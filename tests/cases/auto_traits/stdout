@@ -1,0 +1,39 @@
+version bump: 1.0.0 -> (breaking) -> 2.0.0
+error: breaking changes in `Abc`
+ --> $REPO_PATH/tests/cases/auto_traits/new.rs:6:1
+  |
+6 | pub struct Abc { }
+  | ^^^^^^^^^^^^^^^^^^
+  |
+  = warning: automatic trait impl of `Send` specialized or made impossible (breaking)
+  = warning: automatic trait impl of `Sync` specialized or made impossible (breaking)
+
+error: breaking changes in `Def`
+  --> $REPO_PATH/tests/cases/auto_traits/new.rs:12:1
+   |
+12 | / pub struct Def<A> {
+13 | |     field: Rc<A>,
+14 | | }
+   | |_^
+   |
+   = warning: automatic trait impl of `Send` specialized or made impossible (breaking)
+   = warning: automatic trait impl of `Sync` specialized or made impossible (breaking)
+
+error: breaking changes in `Ghi`
+  --> $REPO_PATH/tests/cases/auto_traits/new.rs:17:1
+   |
+17 | / pub struct Ghi<A> {
+18 | |     field: A,
+19 | | }
+   | |_^
+   |
+   = warning: automatic trait impl of `Send` specialized or made impossible (breaking)
+
+warning: technically breaking changes in `<new::Ghi<A> as std::marker::Send>`
+  --> $REPO_PATH/tests/cases/auto_traits/new.rs:24:1
+   |
+24 | impl<A: Clone> !Send for Ghi<A> { }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: trait impl generalized or newly added (technically breaking)
+
