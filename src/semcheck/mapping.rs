@@ -333,8 +333,10 @@ impl NameMapping {
             Local(_) |
             Upvar(_, _, _) |
             Label(_) => Some(&mut self.value_map),
-            Macro(_, _) |
-            NonMacroAttr(_) => Some(&mut self.macro_map),
+            Macro(_, _) => Some(&mut self.macro_map),
+            ToolMod |
+            NonMacroAttr(_) |
+            GlobalAsm(_) |
             Err => None,
         };
 
