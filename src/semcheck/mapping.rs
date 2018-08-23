@@ -321,7 +321,8 @@ impl NameMapping {
             AssociatedExistential(_) |
             PrimTy(_) |
             TyParam(_) |
-            SelfTy(_, _) => Some(&mut self.type_map),
+            SelfTy(_, _) |
+            ToolMod => Some(&mut self.type_map),
             Fn(_) |
             Const(_) |
             Static(_, _) |
@@ -334,7 +335,7 @@ impl NameMapping {
             Label(_) => Some(&mut self.value_map),
             Macro(_, _) => Some(&mut self.macro_map),
             ToolMod |
-            NonMacroAttr /*(_)*/ |
+            NonMacroAttr(_) |
             GlobalAsm(_) |
             Err => None,
         };
