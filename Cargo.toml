@@ -25,7 +25,7 @@ name = "rust-semverver"
 path = "src/bin/rust_semverver.rs"
 
 [dependencies]
-cargo = "0.29"
+cargo = "0.31"
 crates-io = "0.17"
 env_logger = "0.5"
 log = "0.4"
