@@ -8,8 +8,8 @@ error: breaking changes in `Def`
 8 | | }
   | |_^
   |
-  = warning: type error: expected (), found struct `new::Abc` (breaking)
-  = warning: type error: expected (), found trait new::Bcd (breaking)
+  = warning: type error: expected struct `new::Abc`, found () (breaking)
+  = warning: type error: expected trait new::Bcd, found () (breaking)
 
 warning: path changes to `Abc`
  --> addition_use/new.rs:1:1
@@ -28,4 +28,3 @@ warning: path changes to `Bcd`
   = note: added definition (technically breaking)
 
 error: aborting due to previous error
-

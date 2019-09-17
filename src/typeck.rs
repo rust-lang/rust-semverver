@@ -21,6 +21,13 @@ use rustc::{
     },
 };
 
+/// A wrapper for type errors that defines how they behave w.r.t. semver.
+pub enum TaggedTypeError<'tcx> {
+    Breaking(TypeError<'tcx>),
+    NonBreaking(TypeError<'tcx>),
+    NoError,
+}
+
 /// The context in which bounds analysis happens.
 pub struct BoundContext<'a, 'tcx: 'a> {
     /// The inference context to use.
@@ -200,7 +207,28 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
         })
     }
 
+    // TODO: make this return a nice enum.
+    pub fn check_type_errors<'tcx2>(
+        &self,
+        lift_tcx: TyCtxt<'tcx2>,
+        target_def_id: DefId,
+        target_param_env: ParamEnv<'tcx>,
+        orig: Ty<'tcx>,
+        target: Ty<'tcx>,
+    ) -> TaggedTypeError<'tcx2> {
+        if let Some(e) = self.check_type_error(lift_tcx, target_def_id, target_param_env, target, orig) {
+            return TaggedTypeError::Breaking(e);
+        }
+
+        if let Some(e) = self.check_type_error(lift_tcx, target_def_id, target_param_env, orig, target) {
+            return TaggedTypeError::NonBreaking(e);
+        }
+
+        TaggedTypeError::NoError
+    }
+
     /// Check for type mismatches in a pair of items.
+    /// TODO: refactor this to make the direction of the check configurable
     pub fn check_type_error<'tcx2>(
         &self,
         lift_tcx: TyCtxt<'tcx2>,
@@ -217,7 +245,7 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
         let error = self
             .infcx
             .at(&ObligationCause::dummy(), target_param_env)
-            .eq(orig, target)
+            .sub(orig, target)
             .map(|InferOk { obligations: o, .. }| {
                 assert_eq!(o, vec![]);
             });

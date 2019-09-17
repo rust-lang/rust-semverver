@@ -42,7 +42,7 @@ error: breaking changes in `test7`
 11 |     fn test7() -> u16;
    |     ^^^^^^^^^^^^^^^^^^
    |
-   = warning: type error: expected u8, found u16 (breaking)
+   = warning: type error: expected u16, found u8 (breaking)
 
 error: breaking changes in `test8`
   --> traits/new.rs:12:5
@@ -157,4 +157,3 @@ error: breaking changes in `Tuv`
    = warning: removed bound on trait definition: `A: std::clone::Clone` (breaking)
 
 error: aborting due to 13 previous errors
-

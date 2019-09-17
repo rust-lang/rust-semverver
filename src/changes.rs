@@ -331,7 +331,7 @@ pub enum ChangeType<'tcx> {
     /// A trait's definition changed it's unsafety.
     TraitUnsafetyChanged { now_unsafe: bool },
     /// An item's type has changed.
-    TypeChanged { error: TypeError<'tcx> },
+    TypeChanged { non_breaking: bool, error: TypeError<'tcx> },
     /// An item's (trait) bounds have been tightened.
     BoundsTightened { pred: Predicate<'tcx> },
     /// An item's (trait) bounds have been loosened.
@@ -376,7 +376,6 @@ impl<'tcx> ChangeType<'tcx> {
             VariantFieldAdded { .. } | // TODO: this (and the two below) appear wrong
             VariantFieldRemoved { .. } |
             VariantStyleChanged { .. } |
-            TypeChanged { .. } |
             FnConstChanged { now_const: false } |
             MethodSelfChanged { now_self: false } |
             TraitItemAdded { defaulted: false, sealed_trait: false } |
@@ -397,6 +396,7 @@ impl<'tcx> ChangeType<'tcx> {
             VarianceLoosened |
             TypeParameterAdded { defaulted: true } |
             FnConstChanged { now_const: true } => NonBreaking,
+            TypeChanged { non_breaking, .. } => if non_breaking { NonBreaking } else { Breaking },
         }
     }
 
@@ -536,8 +536,9 @@ to the item become invalid."
 implementations become invalid."
             }
             TypeChanged { .. } => {
-                "Changing the type of an item is a breaking change, because user code
-using the item becomes type-incorrect."
+                "Changing the type of an item is a breaking change if the new type is not
+a subtype of the old type, because user code using the item becomes
+type-incorrect. Otherwise, it is merely a non-breaking change."
             }
             BoundsTightened { .. } => {
                 "Tightening the bounds of a lifetime or type parameter is a breaking
@@ -665,7 +666,7 @@ impl<'a> fmt::Display for ChangeType<'a> {
             TraitItemRemoved { defaulted: false } => "removed item from trait",
             TraitUnsafetyChanged { now_unsafe: true } => "trait made unsafe",
             TraitUnsafetyChanged { now_unsafe: false } => "trait no longer unsafe",
-            TypeChanged { ref error } => return write!(f, "type error: {}", error),
+            TypeChanged { ref error, .. } => return write!(f, "type error: {}", error),
             BoundsTightened { ref pred } => return write!(f, "added bound: `{}`", pred),
             BoundsLoosened {
                 ref pred,

@@ -14,7 +14,7 @@ use crate::{
     mapping::{IdMapping, NameMapping},
     mismatch::MismatchRelation,
     translate::TranslationContext,
-    typeck::{BoundContext, TypeComparisonContext},
+    typeck::{BoundContext, TaggedTypeError, TypeComparisonContext},
 };
 use log::{debug, info};
 use rustc::{
@@ -925,10 +925,14 @@ fn cmp_types<'tcx>(
             .param_env(target_def_id)
             .subst(infcx.tcx, target_substs);
 
-        if let Some(err) =
-            compcx.check_type_error(tcx, target_def_id, target_param_env, orig, target)
-        {
-            changes.add_change(ChangeType::TypeChanged { error: err }, orig_def_id, None);
+        let err = compcx.check_type_errors(tcx, target_def_id, target_param_env, orig, target);
+
+        if let TaggedTypeError::Breaking(error) = err {
+            changes.add_change(ChangeType::TypeChanged { non_breaking: false, error },
+                               orig_def_id, None);
+        } else if let TaggedTypeError::NonBreaking(error) = err {
+            changes.add_change(ChangeType::TypeChanged { non_breaking: true, error },
+                               orig_def_id, None);
         } else {
             // check the bounds if no type error has been found
             compcx.check_bounds_bidirectional(
@@ -1259,8 +1263,9 @@ fn match_inherent_impl<'tcx>(
             compcx.check_type_error(tcx, target_item_def_id, target_param_env, orig, target);
 
         if let Some(err) = error {
+            // TODO: this is weird
             changes.add_change(
-                ChangeType::TypeChanged { error: err },
+                ChangeType::TypeChanged { non_breaking: false, error: err },
                 orig_item_def_id,
                 None,
             );
