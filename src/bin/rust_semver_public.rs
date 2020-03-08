@@ -4,17 +4,17 @@
 extern crate rustc;
 extern crate rustc_driver;
 extern crate rustc_interface;
-extern crate syntax;
+extern crate rustc_span;
 
 use log::debug;
 use rustc_driver::{Callbacks, Compilation};
-use rustc_interface::interface;
+use rustc_interface::{interface, Queries};
+use rustc_span::source_map::Pos;
 use semverver::run_traversal;
 use std::{
     path::Path,
     process::{exit, Command},
 };
-use syntax::source_map::Pos;
 
 /// Display semverver version.
 fn show_version() {
@@ -36,10 +36,10 @@ fn main() {
             struct PubCallbacks;
 
             impl Callbacks for PubCallbacks {
-                fn after_analysis(&mut self, compiler: &interface::Compiler) -> Compilation {
+                fn after_analysis<'tcx>(&mut self, _compiler: &interface::Compiler, queries: &'tcx Queries<'tcx>) -> Compilation {
                     debug!("running rust-semver-public after_analysis callback");
 
-                    compiler.global_ctxt().unwrap().peek_mut().enter(|tcx| {
+                    queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
                         let krate = tcx
                             .crates()
                             .iter()

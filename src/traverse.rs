@@ -18,11 +18,7 @@ use crate::{
 };
 use log::{debug, info};
 use rustc::{
-    hir::{
-        def::{CtorKind, CtorOf, DefKind, Export, Res, Res::Def},
-        def_id::DefId,
-        HirId,
-    },
+    hir::exports::Export,
     ty::{
         subst::{InternalSubsts, Subst},
         AssocItem, GenericParamDef, GenericParamDefKind, Generics, TraitRef, Ty, TyCtxt, TyKind,
@@ -30,6 +26,13 @@ use rustc::{
         Visibility::Public,
     },
 };
+use rustc_hir::{
+    def::{CtorKind, CtorOf, DefKind, Res, Res::Def},
+    def_id::DefId,
+    hir_id::HirId,
+};
+use rustc_infer::infer::TyCtxtInferExt;
+use rustc_mir::const_eval::is_const_fn;
 use std::collections::{BTreeMap, HashSet, VecDeque};
 
 /// The main entry point to our analysis passes.
@@ -75,7 +78,7 @@ fn get_vis(outer_vis: Visibility, def: Export<HirId>) -> Visibility {
 }
 
 pub fn run_traversal(tcx: TyCtxt, new: DefId) {
-    use rustc::hir::def::DefKind::*;
+    use rustc_hir::def::DefKind::*;
     let mut visited = HashSet::new();
     let mut mod_queue = VecDeque::new();
 
@@ -128,7 +131,7 @@ fn diff_structure<'tcx>(
     old: DefId,
     new: DefId,
 ) {
-    use rustc::hir::def::DefKind::*;
+    use rustc_hir::def::DefKind::*;
 
     let mut visited = HashSet::new();
     let mut children = NameMapping::default();
@@ -360,8 +363,8 @@ fn diff_fn<'tcx>(changes: &mut ChangeSet, tcx: TyCtxt<'tcx>, old: Res, new: Res)
     let old_def_id = old.def_id();
     let new_def_id = new.def_id();
 
-    let old_const = tcx.is_const_fn(old_def_id);
-    let new_const = tcx.is_const_fn(new_def_id);
+    let old_const = is_const_fn(tcx, old_def_id);
+    let new_const = is_const_fn(tcx, new_def_id);
 
     if old_const != new_const {
         changes.add_change(
@@ -408,7 +411,7 @@ fn diff_method<'tcx>(changes: &mut ChangeSet, tcx: TyCtxt<'tcx>, old: AssocItem,
 /// This establishes the needed correspondence between non-toplevel items such as enum variants,
 /// struct- and enum fields etc.
 fn diff_adts(changes: &mut ChangeSet, id_mapping: &mut IdMapping, tcx: TyCtxt, old: Res, new: Res) {
-    use rustc::hir::def::DefKind::*;
+    use rustc_hir::def::DefKind::*;
 
     let old_def_id = old.def_id();
     let new_def_id = new.def_id();
@@ -567,9 +570,9 @@ fn diff_traits<'tcx>(
     new: DefId,
     output: bool,
 ) {
-    use rustc::hir::Unsafety::Unsafe;
     use rustc::ty::subst::GenericArgKind::Type;
     use rustc::ty::{ParamTy, Predicate, TyS};
+    use rustc_hir::Unsafety::Unsafe;
 
     debug!(
         "diff_traits: old: {:?}, new: {:?}, output: {:?}",
@@ -591,7 +594,8 @@ fn diff_traits<'tcx>(
     let old_param_env = tcx.param_env(old);
 
     for bound in old_param_env.caller_bounds {
-        if let Predicate::Trait(pred) = *bound {
+        if let Predicate::Trait(pred, _constness) = *bound {
+            // TODO: check constness
             let trait_ref = pred.skip_binder().trait_ref;
 
             debug!("trait_ref substs (old): {:?}", trait_ref.substs);
@@ -862,7 +866,7 @@ fn diff_types<'tcx>(
     old: Res,
     new: Res,
 ) {
-    use rustc::hir::def::DefKind::*;
+    use rustc_hir::def::DefKind::*;
 
     let old_def_id = old.def_id();
     let new_def_id = new.def_id();

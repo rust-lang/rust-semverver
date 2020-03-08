@@ -9,16 +9,16 @@ use crate::{
     translate::{InferenceCleanupFolder, TranslationContext},
 };
 use log::debug;
-use rustc::{
-    hir::def_id::DefId,
+use rustc::ty::{
+    error::TypeError,
+    fold::TypeFoldable,
+    subst::{GenericArg, InternalSubsts, SubstsRef},
+    GenericParamDefKind, ParamEnv, Predicate, TraitRef, Ty, TyCtxt,
+};
+use rustc_hir::{def_id::DefId, Constness};
+use rustc_infer::{
     infer::InferCtxt,
     traits::{FulfillmentContext, FulfillmentError, Obligation, ObligationCause, TraitEngine},
-    ty::{
-        error::TypeError,
-        fold::TypeFoldable,
-        subst::{GenericArg, InternalSubsts, SubstsRef},
-        GenericParamDefKind, ParamEnv, Predicate, TraitRef, Ty, TyCtxt,
-    },
 };
 
 /// The context in which bounds analysis happens.
@@ -43,7 +43,7 @@ impl<'a, 'tcx> BoundContext<'a, 'tcx> {
 
     /// Register the bounds of an item.
     pub fn register(&mut self, checked_def_id: DefId, substs: SubstsRef<'tcx>) {
-        use rustc::traits::{normalize, Normalized, SelectionContext};
+        use rustc_infer::traits::{normalize, Normalized, SelectionContext};
 
         let cause = ObligationCause::dummy();
         let mut selcx = SelectionContext::new(self.infcx);
@@ -71,9 +71,13 @@ impl<'a, 'tcx> BoundContext<'a, 'tcx> {
     pub fn register_trait_ref(&mut self, checked_trait_ref: TraitRef<'tcx>) {
         use rustc::ty::{Binder, TraitPredicate};
 
-        let predicate = Predicate::Trait(Binder::bind(TraitPredicate {
-            trait_ref: checked_trait_ref,
-        }));
+        let constness = Constness::NotConst; // TODO: figure out correct constness
+        let predicate = Predicate::Trait(
+            Binder::bind(TraitPredicate {
+                trait_ref: checked_trait_ref,
+            }),
+            constness,
+        );
         let obligation = Obligation::new(ObligationCause::dummy(), self.given_param_env, predicate);
         self.fulfill_cx
             .register_predicate_obligation(self.infcx, obligation);
@@ -162,7 +166,7 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
     /// Construct a set of subsitutions for an item, which replaces all region and type variables
     /// with inference variables, with the exception of `Self`.
     pub fn compute_target_infer_substs(&self, target_def_id: DefId) -> SubstsRef<'tcx> {
-        use syntax_pos::DUMMY_SP;
+        use rustc_span::DUMMY_SP;
 
         let has_self = self.infcx.tcx.generics_of(target_def_id).has_self;
 
@@ -209,10 +213,10 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
         orig: Ty<'tcx>,
         target: Ty<'tcx>,
     ) -> Option<TypeError<'tcx2>> {
-        use rustc::infer::outlives::env::OutlivesEnvironment;
-        use rustc::infer::{InferOk, SuppressRegionErrors};
         use rustc::middle::region::ScopeTree;
         use rustc::ty::Lift;
+        use rustc_infer::infer::outlives::env::OutlivesEnvironment;
+        use rustc_infer::infer::{InferOk, SuppressRegionErrors};
 
         let error = self
             .infcx

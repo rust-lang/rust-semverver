@@ -10,18 +10,17 @@
 //! path changes.
 
 use rustc::{
-    hir::def_id::DefId,
     session::Session,
     ty::{error::TypeError, Predicate},
 };
+use rustc_hir::def_id::DefId;
+use rustc_span::{symbol::Symbol, FileName, Span};
 use semver::Version;
 use std::{
     cmp::Ordering,
     collections::{BTreeMap, BTreeSet, HashMap},
     fmt,
 };
-use syntax::symbol::Symbol;
-use syntax_pos::{FileName, Span};
 
 use serde::ser::{SerializeSeq, SerializeStruct, Serializer};
 use serde::Serialize;
@@ -1227,13 +1226,13 @@ pub mod tests {
     extern crate quickcheck;
     use quickcheck::*;
 
-    use rustc::hir::def_id::DefId;
+    use rustc_hir::def_id::DefId;
 
     use std::cmp::{max, min};
 
-    use syntax_pos::hygiene::SyntaxContext;
-    use syntax_pos::symbol::Interner;
-    use syntax_pos::BytePos;
+    use rustc_span::hygiene::SyntaxContext;
+    use rustc_span::symbol::Interner;
+    use rustc_span::BytePos;
 
     /// A wrapper for `Span` that can be randomly generated.
     #[derive(Clone, Debug)]
@@ -1265,7 +1264,7 @@ pub mod tests {
 
     impl Arbitrary for DefId_ {
         fn arbitrary<G: Gen>(g: &mut G) -> DefId_ {
-            use rustc::hir::def_id::{CrateNum, DefIndex};
+            use rustc_hir::def_id::{CrateNum, DefIndex};
 
             let a: u32 = Arbitrary::arbitrary(g);
             let b: u32 = Arbitrary::arbitrary(g);

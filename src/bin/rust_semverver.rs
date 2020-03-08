@@ -7,17 +7,17 @@ extern crate rustc_driver;
 extern crate rustc_errors;
 extern crate rustc_interface;
 extern crate rustc_metadata;
-extern crate syntax;
+extern crate rustc_span;
 
 use log::debug;
 use rustc_driver::{Callbacks, Compilation};
-use rustc_interface::interface;
+use rustc_interface::{interface, Queries};
+use rustc_span::source_map::Pos;
 use semverver::run_analysis;
 use std::{
     path::Path,
     process::{exit, Command},
 };
-use syntax::source_map::Pos;
 
 /// Display semverver version.
 fn show_version() {
@@ -38,7 +38,7 @@ fn main() {
             struct SemverCallbacks;
 
             impl Callbacks for SemverCallbacks {
-                fn after_analysis(&mut self, compiler: &interface::Compiler) -> Compilation {
+                fn after_analysis<'tcx>(&mut self, _compiler: &interface::Compiler, queries: &'tcx Queries<'tcx>) -> Compilation {
                     debug!("running rust-semverver after_analysis callback");
 
                     let verbose =
@@ -55,7 +55,7 @@ fn main() {
                         "no_version".to_owned()
                     };
 
-                    compiler.global_ctxt().unwrap().peek_mut().enter(|tcx| {
+                    queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
                         // To select the old and new crates we look at the position of the
                         // declaration in the source file. The first one will be the `old`
                         // and the other will be `new`. This is unfortunately a bit hacky...

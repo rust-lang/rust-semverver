@@ -4,16 +4,17 @@
 //! map used to temporarily match up unsorted item sequences' elements by name.
 
 use rustc::{
-    hir::{
-        def::{Export, Res},
-        def_id::{CrateNum, DefId},
-        HirId,
-    },
+    hir::exports::Export,
     ty::{AssocKind, GenericParamDef, GenericParamDefKind},
+};
+use rustc_ast::ast::Name;
+use rustc_hir::{
+    def::Res,
+    def_id::{CrateNum, DefId},
+    HirId,
 };
 use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 use std::hash::{Hash, Hasher};
-use syntax::ast::Name;
 
 /// A description of an item found in an inherent impl.
 #[derive(Debug, PartialEq)]
@@ -343,8 +344,8 @@ pub struct NameMapping {
 impl NameMapping {
     /// Insert a single export in the appropriate map, at the appropriate position.
     fn insert(&mut self, item: Export<HirId>, old: bool) {
-        use rustc::hir::def::DefKind::*;
-        use rustc::hir::def::Res::*;
+        use rustc_hir::def::DefKind::*;
+        use rustc_hir::def::Res::*;
 
         let map = match item.res {
             Def(kind, _) => match kind {
