@@ -93,7 +93,7 @@ mod features {
 
         let output = cmd.output().expect("could not run rust-semverver");
 
-        let new_output = {
+        let new_output_full = {
             let stdout: &str = str::from_utf8(&output.stdout)
                 .expect("could not read line from rust-semverver output")
                 .trim_end();
@@ -127,16 +127,16 @@ mod features {
                 })
                 .map(|l| l + "\n")
                 .collect::<String>()
-                .trim_end()
                 .to_string()
         };
+        let new_output = new_output_full.trim_end();
 
         if expected_output != new_output {
             eprintln!("rust-semverver failed to produce the expected result");
 
-            let new_path = Path::new(&env::var("OUT_DIR").unwrap()).join(name);
+            let new_path = Path::new(&env::var("OUT_DIR").expect("OUT_DIR in env")).join(name);
             let mut new_file = File::create(&new_path).unwrap();
-            new_file.write_all(new_output.as_bytes()).unwrap();
+            new_file.write_all(new_output_full.as_bytes()).unwrap();
 
             match std::env::var_os("CI") {
                 None => {

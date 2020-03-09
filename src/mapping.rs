@@ -112,7 +112,13 @@ impl IdMapping {
 
     /// Register two exports representing the same item across versions.
     pub fn add_export(&mut self, old: Res, new: Res) -> bool {
-        let old_def_id = old.def_id();
+        let old_def_id = match old {
+            Res::Def(_kind, id) => id,
+            _ => {
+                // TODO: Figure out why we can get here in other cases.
+                return false;
+            }
+        };
 
         if !self.in_old_crate(old_def_id) || self.toplevel_mapping.contains_key(&old_def_id) {
             return false;
