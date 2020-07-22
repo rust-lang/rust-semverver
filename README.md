@@ -24,15 +24,15 @@ More information on the inner workings of the tool can be found
 
 The tool is implemented as a cargo plugin. As of now, it can be obtained from this git
 repository and compiled from source or installed from
-[crates.io](https://crates.io/crates/semverver). Keep in mind that only the newest version
+[crates.io](https://crates.io/crates/semverver). Keep in mind that only the pinned version(in [rust-toolchain])
 of the nighly toolchain is supported at any given time.
+
 
 If you are already using Rust nightly and have successfully installed tools like
 `cargo add` and `cargo clippy`, just do:
 
 ```sh
-$ rustup update nightly
-$ rustup component add rustc-dev --toolchain nightly
+$ rustup component add rustc-dev llvm-tools-preview
 $ cargo +nightly install semverver
 ```
 
@@ -43,8 +43,7 @@ can be added here).
 You can also install the newest version of the tool from git:
 
 ```sh
-$ rustup update nightly
-$ rustup component add rustc-dev --toolchain nightly
+$ rustup component add rustc-dev llvm-tools-preview --toolchain nightly
 $ cargo +nightly install --git https://github.com/rust-dev-tools/rust-semverver
 ```
 
@@ -55,10 +54,6 @@ $ cargo +nightly install --git https://github.com/rust-dev-tools/rust-semverver
 </summary>
 
 ```sh
-# using rustup is recommended
-$ rustup update nightly
-$ rustup default nightly
-
 $ git clone https://github.com/rust-dev-tools/rust-semverver
 $ cd rust-semverver
 $ cargo install
