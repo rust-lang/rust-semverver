@@ -7,15 +7,11 @@ OS=${1}
 export RUST_BACKTRACE=full
 #export RUST_TEST_NOCAPTURE=1
 
-rustup update nightly
-
-cargo +nightly install rustup-toolchain-install-master
 if [ "${OS}" = "windows" ]; then
-    rustup-toolchain-install-master -f -n master -c rustc-dev -c llvm-tools -i x86_64-pc-windows-msvc
-else
-    rustup-toolchain-install-master -f -n master -c rustc-dev -c llvm-tools
+    rustup set default-host x86_64-pc-windows-msvc
 fi
-rustup override set master
+
+rustup component add rustc-dev llvm-tools-preview
 
 cargo build
 cargo test --verbose -- --nocapture
