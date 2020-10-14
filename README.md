@@ -1,7 +1,6 @@
 # rust-semverver
 
-[![Travis Build Status](https://travis-ci.org/rust-dev-tools/rust-semverver.svg?branch=master)](https://travis-ci.org/rust-dev-tools/rust-semverver)
-[![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/qktm3ndv6cnbj01m?svg=true)](https://ci.appveyor.com/project/ibabushkin/rust-semverver)
+[![Build Status](https://github.com/rust-dev-tools/rust-semverver/workflows/CI/badge.svg?branch=master)](https://github.com/rust-dev-tools/rust-semverver/actions?query=workflow%3ACI+branch%3Amaster)
 [![Current Version](https://meritbadge.herokuapp.com/semverver)](https://crates.io/crates/semverver)
 
 `rust-semverver` is a tool to check semver-compliance in Rust library crates. The core of
