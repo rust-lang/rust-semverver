@@ -10,10 +10,6 @@ authors = ["Inokentiy Babushkin <twk@twki.de>"]
 license-file = "LICENSE"
 edition = "2018"
 
-[badges]
-travis-ci = { repository = "rust-dev-tools/rust-semverver" }
-appveyor = { repository = "rust-dev-tools/rust-semverver" }
-
 [[bin]]
 name = "cargo-semver"
 path = "src/bin/cargo_semver.rs"
