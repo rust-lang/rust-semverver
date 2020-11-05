@@ -1,6 +1,6 @@
 [package]
 name = "semverver"
-description = "Automatic verification of SemVer adhrence in rust library crates"
+description = "Automatic verification of SemVer adherence in Rust library crates"
 repository = "https://github.com/rust-dev-tools/rust-semverver"
 readme = "README.md"
 keywords = ["semver", "plugin"]
