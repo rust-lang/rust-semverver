@@ -3,6 +3,7 @@
 #![allow(clippy::single_match_else)]
 #![allow(clippy::too_many_lines)]
 #![deny(warnings)]
+
 extern crate rustc_ast;
 extern crate rustc_hir;
 extern crate rustc_infer;
