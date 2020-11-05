@@ -119,6 +119,13 @@ fn run(config: &cargo::Config, matches: &getopts::Matches) -> Result<()> {
     };
     let name = current.package.name().to_owned();
 
+    if !current.package.targets().iter().any(|t| t.is_lib()) {
+        return Err(anyhow::anyhow!(
+            "package `{}` lacks required [lib] target",
+            &name
+        ));
+    }
+
     // TODO: JSON output here
     if matches.opt_present("show-public") {
         let (current_rlib, current_deps_output) =
