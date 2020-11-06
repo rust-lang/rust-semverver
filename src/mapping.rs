@@ -66,7 +66,7 @@ pub type InherentImplSet = BTreeSet<(DefId, DefId)>;
 /// Definitions and simple `DefId` mappings are kept separate to record both kinds of
 /// correspondence losslessly. The *access* to the stored data happens through the same API,
 /// however. A reverse mapping is also included, but only for `DefId` lookup.
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::module_name_repetitions))]
+#[allow(clippy::module_name_repetitions)]
 pub struct IdMapping {
     /// The old crate.
     old_crate: CrateNum,
@@ -337,7 +337,7 @@ type OptionalExport = Option<Export<HirId>>;
 ///
 /// Both old and new exports can be missing. Allows for reuse of the `HashMap`s used for storage.
 #[derive(Default)]
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::module_name_repetitions))]
+#[allow(clippy::module_name_repetitions)]
 pub struct NameMapping {
     /// The exports in the type namespace.
     type_map: HashMap<Symbol, (OptionalExport, OptionalExport)>,

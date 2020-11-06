@@ -121,7 +121,7 @@ pub fn run_traversal(tcx: TyCtxt, new: DefId) {
 /// Traverse the two root modules in an interleaved manner, matching up pairs of modules
 /// from the two crate versions and compare for changes. Matching children get processed
 /// in the same fashion.
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::cognitive_complexity))]
+#[allow(clippy::cognitive_complexity)]
 fn diff_structure<'tcx>(
     changes: &mut ChangeSet,
     id_mapping: &mut IdMapping,

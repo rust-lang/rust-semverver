@@ -2,11 +2,7 @@
 #![feature(set_stdio)]
 #![allow(clippy::too_many_lines)]
 
-extern crate curl;
-#[macro_use]
-extern crate serde;
 extern crate rustc_session;
-extern crate serde_json;
 
 use cargo::core::{Package, PackageId, Source, SourceId, Workspace};
 use cargo::sources::RegistrySource;
@@ -14,6 +10,7 @@ use curl::easy::Easy;
 use log::debug;
 use rand::Rng;
 use rustc_session::getopts;
+use serde::Deserialize;
 use std::collections::HashSet;
 use std::{
     env,

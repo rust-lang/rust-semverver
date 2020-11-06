@@ -1222,7 +1222,6 @@ impl<'a, 'tcx> Serialize for RChangeSet<'a, 'tcx> {
 #[cfg(test)]
 pub mod tests {
     pub use super::*;
-    extern crate quickcheck;
     use quickcheck::*;
 
     use rustc_hir::def_id::DefId;
