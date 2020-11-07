@@ -6,6 +6,8 @@ on:
   push:
     branches:
       - master
+      # Managed by bors
+      - auto
 
 jobs:
   build_and_test:
