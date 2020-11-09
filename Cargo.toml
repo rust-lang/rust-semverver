@@ -11,7 +11,7 @@ license-file = "LICENSE"
 edition = "2018"
 
 [dependencies]
-cargo = "0.45"
+cargo = "0.48"
 crates-io = "0.32"
 curl = "0.4.21"
 env_logger = "0.7"

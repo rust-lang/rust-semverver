@@ -481,13 +481,15 @@ impl<'a> WorkInfo<'a> {
         // we need the build plan to find our build artifacts
         opts.build_config.build_plan = true;
 
-        if let Some(target) = matches.opt_str("target") {
-            let target = cargo::core::compiler::CompileTarget::new(&target);
-            if let Ok(target) = target {
-                let kind = cargo::core::compiler::CompileKind::Target(target);
-                opts.build_config.requested_kind = kind;
-            }
-        }
+        let compile_kind = if let Some(target) = matches.opt_str("target") {
+            let target = cargo::core::compiler::CompileTarget::new(&target)?;
+
+            let kind = cargo::core::compiler::CompileKind::Target(target);
+            opts.build_config.requested_kinds = vec![kind];
+            kind
+        } else {
+            cargo::core::compiler::CompileKind::Host
+        };
 
         if let Some(s) = matches.opt_str("features") {
             opts.features = s.split(' ').map(str::to_owned).collect();
@@ -512,11 +514,14 @@ impl<'a> WorkInfo<'a> {
 
         // redirection gang
         let outfile = File::create(&outdir)?;
-        let old_stdio = std::io::set_print(Some(Box::new(outfile)));
 
-        let _ = cargo::ops::compile(&self.workspace, &opts)?;
+        let mut file_write = cargo::core::Shell::from_write(Box::new(outfile));
+        file_write.set_verbosity(cargo::core::Verbosity::Quiet);
+        let old_shell = std::mem::replace(&mut *config.shell(), file_write);
 
-        std::io::set_print(old_stdio);
+        cargo::ops::compile(&self.workspace, &opts)?;
+
+        let _ = std::mem::replace(&mut *config.shell(), old_shell);
 
         // actually compile things now
         opts.build_config.build_plan = false;
@@ -530,7 +535,9 @@ impl<'a> WorkInfo<'a> {
         for i in &build_plan.invocations {
             if let Some(kind) = i.target_kind.get(0) {
                 if kind.contains("lib") && i.package_name == name {
-                    return Ok((i.outputs[0].clone(), compilation.deps_output));
+                    let deps_output = &compilation.deps_output[&compile_kind];
+
+                    return Ok((i.outputs[0].clone(), deps_output.clone()));
                 }
             }
         }
