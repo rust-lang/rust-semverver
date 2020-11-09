@@ -8,17 +8,15 @@ use cargo::core::{Package, PackageId, Source, SourceId, Workspace};
 use cargo::sources::RegistrySource;
 use curl::easy::Easy;
 use log::debug;
-use rand::Rng;
 use rustc_session::getopts;
 use serde::Deserialize;
 use std::collections::HashSet;
 use std::{
-    env,
-    fs::File,
-    io::BufReader,
+    env, io,
     io::Write,
     path::{Path, PathBuf},
     process::{Command, Stdio},
+    sync::{Arc, RwLock},
 };
 
 pub type Result<T> = cargo::util::CargoResult<T>;
@@ -503,25 +501,18 @@ impl<'a> WorkInfo<'a> {
             format!("-C metadata={}", if current { "new" } else { "old" }),
         );
 
-        let mut outdir = env::temp_dir();
-        // The filename is randomized to avoid clashes when multiple cargo-semver instances are running.
-        outdir.push(&format!(
-            "cargo_semver_{}_{}_{}",
-            name,
-            current,
-            rand::thread_rng().gen::<u32>()
-        ));
+        // Capture build plan from a separate Cargo invocation
+        let output = VecWrite(Arc::new(RwLock::new(Vec::new())));
 
-        // redirection gang
-        let outfile = File::create(&outdir)?;
-
-        let mut file_write = cargo::core::Shell::from_write(Box::new(outfile));
+        let mut file_write = cargo::core::Shell::from_write(Box::new(output.clone()));
         file_write.set_verbosity(cargo::core::Verbosity::Quiet);
+
         let old_shell = std::mem::replace(&mut *config.shell(), file_write);
 
         cargo::ops::compile(&self.workspace, &opts)?;
 
         let _ = std::mem::replace(&mut *config.shell(), old_shell);
+        let plan_output = output.read()?;
 
         // actually compile things now
         opts.build_config.build_plan = false;
@@ -529,7 +520,8 @@ impl<'a> WorkInfo<'a> {
         let compilation = cargo::ops::compile(&self.workspace, &opts)?;
         env::remove_var("RUSTFLAGS");
 
-        let build_plan: BuildPlan = serde_json::from_reader(BufReader::new(File::open(&outdir)?))?;
+        let build_plan: BuildPlan = serde_json::from_slice(&plan_output)
+            .map_err(|_| anyhow::anyhow!("Can't read build plan"))?;
 
         // TODO: handle multiple outputs gracefully
         for i in &build_plan.invocations {
@@ -571,4 +563,31 @@ pub fn find_on_crates_io(crate_name: &str) -> Result<crates_io::Crate> {
                     anyhow::Error::msg(format!("failed to find a matching crate `{}`", crate_name))
                 })
         })
+}
+
+/// Thread-safe byte buffer that implements `io::Write`.
+#[derive(Clone)]
+struct VecWrite(Arc<RwLock<Vec<u8>>>);
+
+impl VecWrite {
+    pub fn read(&self) -> io::Result<std::sync::RwLockReadGuard<'_, Vec<u8>>> {
+        self.0
+            .read()
+            .map_err(|_| io::Error::new(io::ErrorKind::Other, "lock poison"))
+    }
+    pub fn write(&self) -> io::Result<std::sync::RwLockWriteGuard<'_, Vec<u8>>> {
+        self.0
+            .write()
+            .map_err(|_| io::Error::new(io::ErrorKind::Other, "lock poison"))
+    }
+}
+
+impl io::Write for VecWrite {
+    fn write(&mut self, data: &[u8]) -> io::Result<usize> {
+        let mut lock = Self::write(self)?;
+        io::Write::write(&mut *lock, data)
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
 }
