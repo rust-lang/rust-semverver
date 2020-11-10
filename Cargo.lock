@@ -89,7 +89,7 @@ dependencies = [
  "cargo-platform",
  "clap",
  "core-foundation",
- "crates-io 0.31.1",
+ "crates-io",
  "crossbeam-utils",
  "crypto-hash",
  "curl",
@@ -120,7 +120,7 @@ dependencies = [
  "rustc-workspace-hack",
  "rustfix",
  "same-file",
- "semver 0.10.0",
+ "semver",
  "serde",
  "serde_ignored",
  "serde_json",
@@ -221,21 +221,6 @@ name = "crates-io"
 version = "0.31.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09f977948a46e9edf93eb3dc2d7a8dd4ce3105d36de63300befed37cdf051d4a"
-dependencies = [
- "anyhow",
- "curl",
- "percent-encoding",
- "serde",
- "serde_derive",
- "serde_json",
- "url",
-]
-
-[[package]]
-name = "crates-io"
-version = "0.32.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65949ecc100abd1df7d80740ee58afb599f2447c5011bbf5acb5a039a67607ca"
 dependencies = [
  "anyhow",
  "curl",
@@ -881,15 +866,6 @@ dependencies = [
 
 [[package]]
 name = "semver"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d7eb9ef2c18661902cc47e535f9bc51b78acd254da71d375c2f6720d9a40403"
-dependencies = [
- "semver-parser",
-]
-
-[[package]]
-name = "semver"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "394cec28fa623e00903caf7ba4fa6fb9a0e260280bb8cdbbba029611108a0190"
@@ -910,13 +886,13 @@ version = "0.1.46"
 dependencies = [
  "anyhow",
  "cargo",
- "crates-io 0.32.0",
+ "crates-io",
  "curl",
  "env_logger",
  "log",
  "quickcheck",
  "rand",
- "semver 0.9.0",
+ "semver",
  "serde",
  "serde_json",
 ]
