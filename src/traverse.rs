@@ -1146,7 +1146,7 @@ fn diff_trait_impls<'tcx>(
     let to_new = TranslationContext::target_new(tcx, id_mapping, false);
     let to_old = TranslationContext::target_old(tcx, id_mapping, false);
 
-    for old_impl_def_id in tcx
+    for (old_impl_def_id, _) in tcx
         .all_trait_implementations(id_mapping.get_old_crate())
         .iter()
     {
@@ -1174,7 +1174,7 @@ fn diff_trait_impls<'tcx>(
         }
     }
 
-    for new_impl_def_id in tcx
+    for (new_impl_def_id, _) in tcx
         .all_trait_implementations(id_mapping.get_new_crate())
         .iter()
     {
