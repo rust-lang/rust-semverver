@@ -458,6 +458,8 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                 self.translate(index_map, &c2),
             )
             .to_predicate(self.tcx),
+            // NOTE: Only used for Chalk trait solver
+            PredicateAtom::TypeWellFormedFromEnv(_) => unimplemented!(),
         })
     }
 
@@ -492,7 +494,6 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                 ParamEnv::new(
                     self.tcx.intern_predicates(&target_preds),
                     param_env.reveal(),
-                    param_env.def_id,
                 )
             })
     }
