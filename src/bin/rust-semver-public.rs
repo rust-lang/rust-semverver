@@ -115,7 +115,7 @@ fn main() {
             };
 
             let args = args;
-            rustc_driver::run_compiler(&args, &mut PubCallbacks, None, None)
+            rustc_driver::run_compiler(&args, &mut PubCallbacks, None, None, None)
         }
         .map_or_else(|_| 1, |_| 0),
     )
