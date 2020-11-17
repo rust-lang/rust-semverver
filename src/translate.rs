@@ -211,7 +211,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                         let res: Vec<_> = preds
                             .iter()
                             .map(|p| {
-                                match *p.skip_binder() {
+                                match p.skip_binder() {
                                     Trait(existential_trait_ref) => {
                                         let trait_ref = Binder::bind(existential_trait_ref)
                                             .with_self_ty(self.tcx, dummy_self);
