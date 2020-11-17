@@ -133,9 +133,14 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
     #[allow(clippy::similar_names)]
     fn tys(&mut self, a: Ty<'tcx>, b: Ty<'tcx>) -> RelateResult<'tcx, Ty<'tcx>> {
         use rustc_middle::ty::TyKind;
+        // NOTE: Because this pass doesn't really relate but walks and collects
+        // matching items on the side, it doesn't really matter what we return.
+        // Instead, return unit as dummy type (rather than an error type that
+        // could potentially short-circuit somewhere).
+        let dummy_type = self.tcx.types.unit;
 
         if self.current_old_types.contains(a) || self.current_new_types.contains(b) {
-            return Ok(self.tcx.types.err);
+            return Ok(dummy_type);
         }
 
         self.current_old_types.insert(a);
@@ -279,7 +284,7 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
             }
         }
 
-        Ok(self.tcx.types.err)
+        Ok(dummy_type)
     }
 
     fn regions(
