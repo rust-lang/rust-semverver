@@ -1,5 +1,4 @@
 #![feature(rustc_private)]
-#![feature(set_stdio)]
 #![allow(clippy::too_many_lines)]
 
 extern crate rustc_session;

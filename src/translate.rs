@@ -135,7 +135,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                         } else if let Some(GenericArgKind::Type(type_)) =
                             orig_substs.get(def.index as usize).map(|k| k.unpack())
                         {
-                            self.translate(index_map, &GenericArg::from(type_))
+                            self.translate(index_map, GenericArg::from(type_))
                         } else if self
                             .id_mapping
                             .is_non_mapped_defaulted_type_param(def.def_id)
@@ -160,7 +160,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
     }
 
     /// Fold a structure, translating all `DefId`s reachable by the folder.
-    fn translate<T: TypeFoldable<'tcx>>(&self, index_map: &HashMap<u32, DefId>, orig: &T) -> T {
+    fn translate<T: TypeFoldable<'tcx>>(&self, index_map: &HashMap<u32, DefId>, orig: T) -> T {
         use rustc_middle::ty::ExistentialPredicate::*;
         use rustc_middle::ty::TyKind;
         use rustc_middle::ty::TypeAndMut;
@@ -395,7 +395,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
             })
             .potentially_quantified(self.tcx, PredicateKind::ForAll),
             PredicateAtom::TypeOutlives(pred) => PredicateAtom::TypeOutlives({
-                let l = self.translate(index_map, &pred.0);
+                let l = self.translate(index_map, pred.0);
                 let r = self.translate_region(pred.1);
                 OutlivesPredicate(l, r)
             })
@@ -419,7 +419,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
             )
             .potentially_quantified(self.tcx, PredicateKind::ForAll),
             PredicateAtom::WellFormed(ty) => {
-                PredicateAtom::WellFormed(self.translate(index_map, &ty)).to_predicate(self.tcx)
+                PredicateAtom::WellFormed(self.translate(index_map, ty)).to_predicate(self.tcx)
             }
             PredicateAtom::ObjectSafe(did) => {
                 PredicateAtom::ObjectSafe(self.translate_orig(did)).to_predicate(self.tcx)
@@ -431,8 +431,8 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
             )
             .to_predicate(self.tcx),
             PredicateAtom::Subtype(pred) => PredicateAtom::Subtype({
-                let l = self.translate(index_map, &pred.a);
-                let r = self.translate(index_map, &pred.b);
+                let l = self.translate(index_map, pred.a);
+                let r = self.translate(index_map, pred.b);
                 SubtypePredicate {
                     a_is_expected: pred.a_is_expected,
                     a: l,

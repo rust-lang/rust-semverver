@@ -57,7 +57,7 @@ impl<'a, 'tcx> BoundContext<'a, 'tcx> {
             .predicates_of(checked_def_id)
             .instantiate(self.infcx.tcx, substs);
         let Normalized { value, obligations } =
-            normalize(&mut selcx, self.given_param_env, cause.clone(), &predicates);
+            normalize(&mut selcx, self.given_param_env, cause.clone(), predicates);
 
         for obligation in obligations {
             self.fulfill_cx
@@ -257,7 +257,7 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
 
             let err = self
                 .infcx
-                .resolve_vars_if_possible(&err)
+                .resolve_vars_if_possible(err)
                 .fold_with(&mut self.folder.clone())
                 .lift_to_tcx(lift_tcx)
                 .unwrap();
@@ -290,7 +290,7 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
                 .iter()
                 .map(|err| {
                     self.infcx
-                        .resolve_vars_if_possible(&err.obligation.predicate)
+                        .resolve_vars_if_possible(err.obligation.predicate)
                         .fold_with(&mut self.folder.clone())
                         .lift_to_tcx(lift_tcx)
                         .unwrap()
