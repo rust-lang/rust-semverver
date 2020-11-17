@@ -591,7 +591,7 @@ fn diff_traits<'tcx>(
     let mut old_sealed = false;
     let old_param_env = tcx.param_env(old);
 
-    for bound in old_param_env.caller_bounds {
+    for bound in old_param_env.caller_bounds() {
         if let PredicateKind::Trait(pred, _) = *bound.kind() {
             let trait_ref = pred.skip_binder().trait_ref;
 

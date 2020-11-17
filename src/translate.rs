@@ -494,10 +494,14 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
         orig_def_id: DefId,
         param_env: ParamEnv<'tcx>,
     ) -> Option<ParamEnv<'tcx>> {
-        self.translate_predicates(orig_def_id, param_env.caller_bounds)
-            .map(|target_preds| ParamEnv {
-                caller_bounds: self.tcx.intern_predicates(&target_preds),
-                ..param_env
+        self.translate_predicates(orig_def_id, param_env.caller_bounds())
+            .map(|target_preds| {
+                ParamEnv::new(
+                    self.tcx.intern_predicates(&target_preds),
+                    param_env.reveal(),
+                    param_env.def_id,
+
+                )
             })
     }
 
