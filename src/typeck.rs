@@ -18,7 +18,8 @@ use rustc_middle::{
         error::TypeError,
         fold::TypeFoldable,
         subst::{GenericArg, InternalSubsts, SubstsRef},
-        GenericParamDefKind, ParamEnv, Predicate, PredicateKind, ToPredicate, TraitRef, Ty, TyCtxt,
+        GenericParamDefKind, ParamEnv, Predicate, PredicateAtom, PredicateKind, TraitRef, Ty,
+        TyCtxt,
     },
 };
 use rustc_trait_selection::traits::FulfillmentContext;
@@ -73,15 +74,15 @@ impl<'a, 'tcx> BoundContext<'a, 'tcx> {
     /// Register the trait bound represented by a `TraitRef`.
     pub fn register_trait_ref(&mut self, checked_trait_ref: TraitRef<'tcx>) {
         use rustc_hir::Constness;
-        use rustc_middle::ty::{Binder, TraitPredicate};
+        use rustc_middle::ty::TraitPredicate;
 
-        let predicate = PredicateKind::Trait(
-            Binder::bind(TraitPredicate {
+        let predicate = PredicateAtom::Trait(
+            TraitPredicate {
                 trait_ref: checked_trait_ref,
-            }),
+            },
             Constness::NotConst,
         )
-        .to_predicate(self.infcx.tcx);
+        .potentially_quantified(self.infcx.tcx, PredicateKind::ForAll);
         let obligation = Obligation::new(ObligationCause::dummy(), self.given_param_env, predicate);
         self.fulfill_cx
             .register_predicate_obligation(self.infcx, obligation);

@@ -365,105 +365,95 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
         predicate: Predicate<'tcx>,
     ) -> Option<Predicate<'tcx>> {
         use rustc_middle::ty::{
-            Binder, OutlivesPredicate, PredicateKind, ProjectionPredicate, ProjectionTy,
+            OutlivesPredicate, PredicateAtom, PredicateKind, ProjectionPredicate, ProjectionTy,
             SubtypePredicate, ToPredicate, TraitPredicate, WithOptConstParam,
         };
 
-        Some(match predicate.kind() {
-            PredicateKind::Trait(trait_predicate, constness) => PredicateKind::Trait(
-                Binder::bind(
-                    if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
-                        index_map,
-                        trait_predicate.skip_binder().trait_ref.def_id,
-                        trait_predicate.skip_binder().trait_ref.substs,
-                    ) {
-                        TraitPredicate {
-                            trait_ref: TraitRef {
-                                def_id: target_def_id,
-                                substs: target_substs,
-                            },
-                        }
-                    } else {
-                        return None;
-                    },
-                ),
-                *constness,
-            )
-            .to_predicate(self.tcx),
-            PredicateKind::RegionOutlives(region_outlives_predicate) => {
-                PredicateKind::RegionOutlives(region_outlives_predicate.map_bound(|r_pred| {
-                    let l = self.translate_region(r_pred.0);
-                    let r = self.translate_region(r_pred.1);
-                    OutlivesPredicate(l, r)
-                }))
-                .to_predicate(self.tcx)
-            }
-            PredicateKind::TypeOutlives(type_outlives_predicate) => {
-                PredicateKind::TypeOutlives(type_outlives_predicate.map_bound(|r_pred| {
-                    let l = self.translate(index_map, &r_pred.0);
-                    let r = self.translate_region(r_pred.1);
-                    OutlivesPredicate(l, r)
-                }))
-                .to_predicate(self.tcx)
-            }
-            PredicateKind::Projection(projection_predicate) => {
-                PredicateKind::Projection(Binder::bind(
-                    if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
-                        index_map,
-                        projection_predicate.skip_binder().projection_ty.item_def_id,
-                        projection_predicate.skip_binder().projection_ty.substs,
-                    ) {
-                        ProjectionPredicate {
-                            projection_ty: ProjectionTy {
-                                substs: target_substs,
-                                item_def_id: target_def_id,
-                            },
-                            ty: self.translate(index_map, &projection_predicate.skip_binder().ty),
-                        }
-                    } else {
-                        return None;
-                    },
-                ))
-                .to_predicate(self.tcx)
-            }
-            PredicateKind::WellFormed(ty) => {
-                PredicateKind::WellFormed(self.translate(index_map, &ty)).to_predicate(self.tcx)
-            }
-            PredicateKind::ObjectSafe(did) => {
-                PredicateKind::ObjectSafe(self.translate_orig(*did)).to_predicate(self.tcx)
-            }
-            PredicateKind::ClosureKind(did, substs, kind) => PredicateKind::ClosureKind(
-                self.translate_orig(*did),
-                self.translate(index_map, &substs),
-                *kind,
-            )
-            .to_predicate(self.tcx),
-            PredicateKind::Subtype(subtype_predicate) => {
-                PredicateKind::Subtype(subtype_predicate.map_bound(|s_pred| {
-                    let l = self.translate(index_map, &s_pred.a);
-                    let r = self.translate(index_map, &s_pred.b);
-                    SubtypePredicate {
-                        a_is_expected: s_pred.a_is_expected,
-                        a: l,
-                        b: r,
+        Some(match predicate.skip_binders() {
+            PredicateAtom::Trait(pred, constness) => PredicateAtom::Trait(
+                if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
+                    index_map,
+                    pred.trait_ref.def_id,
+                    pred.trait_ref.substs,
+                ) {
+                    TraitPredicate {
+                        trait_ref: TraitRef {
+                            def_id: target_def_id,
+                            substs: target_substs,
+                        },
                     }
-                }))
-                .to_predicate(self.tcx)
+                } else {
+                    return None;
+                },
+                constness,
+            )
+            .potentially_quantified(self.tcx, PredicateKind::ForAll),
+            PredicateAtom::RegionOutlives(pred) => PredicateAtom::RegionOutlives({
+                let l = self.translate_region(pred.0);
+                let r = self.translate_region(pred.1);
+                OutlivesPredicate(l, r)
+            })
+            .potentially_quantified(self.tcx, PredicateKind::ForAll),
+            PredicateAtom::TypeOutlives(pred) => PredicateAtom::TypeOutlives({
+                let l = self.translate(index_map, &pred.0);
+                let r = self.translate_region(pred.1);
+                OutlivesPredicate(l, r)
+            })
+            .potentially_quantified(self.tcx, PredicateKind::ForAll),
+            PredicateAtom::Projection(pred) => PredicateAtom::Projection(
+                if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
+                    index_map,
+                    pred.projection_ty.item_def_id,
+                    pred.projection_ty.substs,
+                ) {
+                    ProjectionPredicate {
+                        projection_ty: ProjectionTy {
+                            substs: target_substs,
+                            item_def_id: target_def_id,
+                        },
+                        ty: self.translate(index_map, &pred.ty),
+                    }
+                } else {
+                    return None;
+                },
+            )
+            .potentially_quantified(self.tcx, PredicateKind::ForAll),
+            PredicateAtom::WellFormed(ty) => {
+                PredicateAtom::WellFormed(self.translate(index_map, &ty)).to_predicate(self.tcx)
             }
-            PredicateKind::ConstEvaluatable(param, orig_substs) => {
+            PredicateAtom::ObjectSafe(did) => {
+                PredicateAtom::ObjectSafe(self.translate_orig(did)).to_predicate(self.tcx)
+            }
+            PredicateAtom::ClosureKind(did, substs, kind) => PredicateAtom::ClosureKind(
+                self.translate_orig(did),
+                self.translate(index_map, &substs),
+                kind,
+            )
+            .to_predicate(self.tcx),
+            PredicateAtom::Subtype(pred) => PredicateAtom::Subtype({
+                let l = self.translate(index_map, &pred.a);
+                let r = self.translate(index_map, &pred.b);
+                SubtypePredicate {
+                    a_is_expected: pred.a_is_expected,
+                    a: l,
+                    b: r,
+                }
+            })
+            .to_predicate(self.tcx),
+            PredicateAtom::ConstEvaluatable(param, orig_substs) => {
                 if let Some((target_def_id, target_substs)) =
                     self.translate_orig_substs(index_map, param.did, orig_substs)
                 {
                     // TODO: We could probably use translated version for
                     // `WithOptConstParam::const_param_did`
                     let const_param = WithOptConstParam::unknown(target_def_id);
-                    PredicateKind::ConstEvaluatable(const_param, target_substs)
+                    PredicateAtom::ConstEvaluatable(const_param, target_substs)
                         .to_predicate(self.tcx)
                 } else {
                     return None;
                 }
             }
-            PredicateKind::ConstEquate(c1, c2) => PredicateKind::ConstEquate(
+            PredicateAtom::ConstEquate(c1, c2) => PredicateAtom::ConstEquate(
                 self.translate(index_map, &c1),
                 self.translate(index_map, &c2),
             )
@@ -503,7 +493,6 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                     self.tcx.intern_predicates(&target_preds),
                     param_env.reveal(),
                     param_env.def_id,
-
                 )
             })
     }
