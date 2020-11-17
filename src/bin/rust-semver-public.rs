@@ -5,7 +5,7 @@ extern crate rustc_interface;
 extern crate rustc_span;
 
 use log::debug;
-use rustc_driver::{Callbacks, Compilation};
+use rustc_driver::{Callbacks, Compilation, RunCompiler};
 use rustc_interface::{interface, Queries};
 use rustc_span::source_map::Pos;
 use semverver::run_traversal;
@@ -114,8 +114,7 @@ fn main() {
                     .collect()
             };
 
-            let args = args;
-            rustc_driver::run_compiler(&args, &mut PubCallbacks, None, None, None)
+            RunCompiler::new(&args, &mut PubCallbacks).run()
         }
         .map_or_else(|_| 1, |_| 0),
     )
