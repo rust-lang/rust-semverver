@@ -570,7 +570,7 @@ fn diff_traits<'tcx>(
 ) {
     use rustc_hir::Unsafety::Unsafe;
     use rustc_middle::ty::subst::GenericArgKind::Type;
-    use rustc_middle::ty::{ParamTy, PredicateAtom, TyS};
+    use rustc_middle::ty::{ParamTy, PredicateAtom};
 
     debug!(
         "diff_traits: old: {:?}, new: {:?}, output: {:?}",
@@ -598,12 +598,10 @@ fn diff_traits<'tcx>(
             debug!("trait_ref substs (old): {:?}", trait_ref.substs);
 
             if id_mapping.is_private_trait(trait_ref.def_id) && trait_ref.substs.len() == 1 {
-                if let Type(&TyS {
-                    kind: TyKind::Param(ParamTy { index: 0, .. }),
-                    ..
-                }) = trait_ref.substs[0].unpack()
-                {
-                    old_sealed = true;
+                if let Type(typ) = trait_ref.substs[0].unpack() {
+                    if let TyKind::Param(ParamTy { index: 0, .. }) = typ.kind() {
+                        old_sealed = true;
+                    }
                 }
             }
         }
@@ -1096,7 +1094,7 @@ fn diff_inherent_impls<'tcx>(
 #[allow(clippy::match_same_arms)]
 fn is_impl_trait_public<'tcx>(tcx: TyCtxt<'tcx>, impl_def_id: DefId) -> bool {
     fn type_visibility(tcx: TyCtxt, ty: Ty) -> Visibility {
-        match ty.kind {
+        match ty.kind() {
             TyKind::Adt(def, _) => tcx.visibility(def.did),
 
             TyKind::Array(t, _)

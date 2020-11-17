@@ -169,7 +169,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
         orig.fold_with(&mut BottomUpFolder {
             tcx: self.tcx,
             ty_op: |ty| {
-                match ty.kind {
+                match *ty.kind() {
                     TyKind::Adt(&AdtDef { ref did, .. }, substs)
                         if self.needs_translation(*did) =>
                     {
@@ -553,7 +553,7 @@ impl<'a, 'tcx> TypeFolder<'tcx> for InferenceCleanupFolder<'a, 'tcx> {
         use rustc_middle::ty::TypeAndMut;
 
         let t1 = ty.super_fold_with(self);
-        match t1.kind {
+        match *t1.kind() {
             TyKind::Ref(region, ty, mutbl) if region.needs_infer() => {
                 let ty_and_mut = TypeAndMut { ty, mutbl };
                 self.infcx
