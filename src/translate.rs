@@ -366,7 +366,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
     ) -> Option<Predicate<'tcx>> {
         use rustc_middle::ty::{
             Binder, OutlivesPredicate, PredicateKind, ProjectionPredicate, ProjectionTy,
-            SubtypePredicate, ToPredicate, TraitPredicate,
+            SubtypePredicate, ToPredicate, TraitPredicate, WithOptConstParam,
         };
 
         Some(match predicate.kind() {
@@ -450,11 +450,14 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                 }))
                 .to_predicate(self.tcx)
             }
-            PredicateKind::ConstEvaluatable(orig_did, orig_substs) => {
+            PredicateKind::ConstEvaluatable(param, orig_substs) => {
                 if let Some((target_def_id, target_substs)) =
-                    self.translate_orig_substs(index_map, *orig_did, orig_substs)
+                    self.translate_orig_substs(index_map, param.did, orig_substs)
                 {
-                    PredicateKind::ConstEvaluatable(target_def_id, target_substs)
+                    // TODO: We could probably use translated version for
+                    // `WithOptConstParam::const_param_did`
+                    let const_param = WithOptConstParam::unknown(target_def_id);
+                    PredicateKind::ConstEvaluatable(const_param, target_substs)
                         .to_predicate(self.tcx)
                 } else {
                     return None;
