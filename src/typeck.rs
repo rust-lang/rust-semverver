@@ -221,13 +221,18 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
         use rustc_infer::infer::{InferOk, RegionckMode};
         use rustc_middle::ty::Lift;
 
-        let error = self
-            .infcx
-            .at(&ObligationCause::dummy(), target_param_env)
-            .eq(orig, target)
-            .map(|InferOk { obligations: o, .. }| {
-                assert_eq!(o, vec![]);
-            });
+        let error = self.infcx.commit_if_ok(|snapshot| {
+            let select = self
+                .infcx
+                .at(&ObligationCause::dummy(), target_param_env)
+                .eq(orig, target)
+                .map(|InferOk { obligations: o, .. }| {
+                    assert_eq!(o, vec![]);
+                });
+            // check for unresolvable lifetime constraints
+            let leak_check = self.infcx.leak_check(false, snapshot);
+            select.and(leak_check)
+        });
 
         if let Err(err) = error {
             let outlives_env = OutlivesEnvironment::new(target_param_env);
