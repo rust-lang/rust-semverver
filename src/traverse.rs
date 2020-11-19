@@ -422,10 +422,7 @@ fn diff_adts(changes: &mut ChangeSet, id_mapping: &mut IdMapping, tcx: TyCtxt, o
         _ => return,
     };
 
-    let is_enum = match old {
-        Def(Enum, _) => true,
-        _ => false,
-    };
+    let is_enum = matches!(old, Def(Enum, _));
 
     let mut variants = BTreeMap::new();
     let mut fields = BTreeMap::new();
