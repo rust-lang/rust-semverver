@@ -20,6 +20,7 @@ use log::{debug, info};
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res, Res::Def};
 use rustc_hir::def_id::DefId;
 use rustc_hir::hir_id::HirId;
+use rustc_hir::lang_items::LangItem;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::{
     hir::exports::Export,
@@ -1144,17 +1145,20 @@ fn diff_trait_impls<'tcx>(
     let to_new = TranslationContext::target_new(tcx, id_mapping, false);
     let to_old = TranslationContext::target_old(tcx, id_mapping, false);
 
+    // NOTE: Ignore for now core::marker::Structural{Eq, PartialEq} since
+    // these are impl'd via *Eq traits but can we want users to see regular
+    // *Eq traits here as the former are a bit auto-magical for the user
+    let structural_teq_def_id = tcx.require_lang_item(LangItem::StructuralTeq, None);
+    let structural_peq_def_id = tcx.require_lang_item(LangItem::StructuralPeq, None);
+    let structural_trait_def_ids = [structural_peq_def_id, structural_teq_def_id];
+
     for (old_impl_def_id, _) in tcx
         .all_trait_implementations(id_mapping.get_old_crate())
         .iter()
     {
         let old_trait_def_id = tcx.impl_trait_ref(*old_impl_def_id).unwrap().def_id;
 
-        // NOTE: Ignore for now core::marker::Structural{Eq, PartialEq} since
-        // these are impl'd via *Eq traits but can we want users to see regular
-        // *Eq traits here as the former are a bit auto-magical for the user
-        let def_path_str = tcx.def_path_str(*old_impl_def_id);
-        if def_path_str.contains("::marker::Structural") {
+        if structural_trait_def_ids.contains(&old_trait_def_id) {
             continue;
         }
 
@@ -1177,11 +1181,8 @@ fn diff_trait_impls<'tcx>(
         .iter()
     {
         let new_trait_def_id = tcx.impl_trait_ref(*new_impl_def_id).unwrap().def_id;
-        // NOTE: Ignore for now core::marker::Structural{Eq, PartialEq} since
-        // these are impl'd via *Eq traits but can we want users to see regular
-        // *Eq traits here as the former are a bit auto-magical for the user
-        let def_path_str = tcx.def_path_str(new_trait_def_id);
-        if def_path_str.contains("::marker::Structural") {
+
+        if structural_trait_def_ids.contains(&new_trait_def_id) {
             continue;
         }
 
