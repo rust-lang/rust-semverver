@@ -30,12 +30,7 @@ error: breaking changes in `write_value`
    |
 15 | / pub fn write_value<W>(wr: &mut W, val: &Value) -> Result<(), Error>
 16 | |     where W: Write
-17 | | {
-18 | |     match *val {
-...  |
-69 | |     Ok(())
-70 | | }
-   | |_^
+   | |__________________^
    |
    = warning: type error: expected enum `old::encode::Error`, found enum `new::encode::Error` (breaking)
 
@@ -44,12 +39,7 @@ error: breaking changes in `write_value_ref`
    |
 27 | / pub fn write_value_ref<W>(wr: &mut W, val: &ValueRef) -> Result<(), Error>
 28 | |     where W: Write
-29 | | {
-30 | |     match *val {
-...  |
-81 | |     Ok(())
-82 | | }
-   | |_^
+   | |__________________^
    |
    = warning: type error: expected enum `old::encode::Error`, found enum `new::encode::Error` (breaking)
 
