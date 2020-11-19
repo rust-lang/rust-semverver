@@ -1152,6 +1152,14 @@ fn diff_trait_impls<'tcx>(
     {
         let old_trait_def_id = tcx.impl_trait_ref(*old_impl_def_id).unwrap().def_id;
 
+        // NOTE: Ignore for now core::marker::Structural{Eq, PartialEq} since
+        // these are impl'd via *Eq traits but can we want users to see regular
+        // *Eq traits here as the former are a bit auto-magical for the user
+        let def_path_str = tcx.def_path_str(*old_impl_def_id);
+        if def_path_str.contains("::marker::Structural") {
+            continue;
+        }
+
         if !to_new.can_translate(old_trait_def_id) || !is_impl_trait_public(tcx, *old_impl_def_id) {
             continue;
         }
@@ -1171,6 +1179,13 @@ fn diff_trait_impls<'tcx>(
         .iter()
     {
         let new_trait_def_id = tcx.impl_trait_ref(*new_impl_def_id).unwrap().def_id;
+        // NOTE: Ignore for now core::marker::Structural{Eq, PartialEq} since
+        // these are impl'd via *Eq traits but can we want users to see regular
+        // *Eq traits here as the former are a bit auto-magical for the user
+        let def_path_str = tcx.def_path_str(new_trait_def_id);
+        if def_path_str.contains("::marker::Structural") {
+            continue;
+        }
 
         if !to_old.can_translate(new_trait_def_id) || !is_impl_trait_public(tcx, *new_impl_def_id) {
             continue;
