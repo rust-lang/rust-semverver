@@ -1,19 +1,32 @@
 version bump: 1.0.0 -> (technically breaking) -> 1.1.0
 warning: path changes to `a`
- --> pathologic_paths/new.rs:5:9
-  |
-5 |         pub mod a { blow!($($rest)*); }
-  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: added definition (technically breaking)
+  --> pathologic_paths/new.rs:10:1
+   |
+10 | / blow!(_ _ _ _ _ _ _ _
+11 | |       _ _ _ _ _ _ _ _
+12 | |       _ _ _ _ _ _ _ _
+13 | |       _ _ _ _ _ _ _ _
+...  |
+16 | |       _ _ _ _ _ _ _ _
+17 | |       _ _ _ _ _ _ _ _);
+   | |_______________________^
+   |
+   = note: added definition (technically breaking)
+   = note: this warning originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 warning: path changes to `b`
- --> pathologic_paths/new.rs:6:9
-  |
-6 |         pub mod b { pub use super::a::*; }
-  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: added definition (technically breaking)
+  --> pathologic_paths/new.rs:10:1
+   |
+10 | / blow!(_ _ _ _ _ _ _ _
+11 | |       _ _ _ _ _ _ _ _
+12 | |       _ _ _ _ _ _ _ _
+13 | |       _ _ _ _ _ _ _ _
+...  |
+16 | |       _ _ _ _ _ _ _ _
+17 | |       _ _ _ _ _ _ _ _);
+   | |_______________________^
+   |
+   = note: added definition (technically breaking)
+   = note: this warning originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 warning: 2 warnings emitted
-
