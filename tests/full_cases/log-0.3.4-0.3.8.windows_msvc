@@ -23,7 +23,7 @@ warning: technically breaking changes in `<new::LogRecord<'a> as std::fmt::Debug
     |
     = note: trait impl generalized or newly added (technically breaking)
 
-warning: technically breaking changes in `<new::LogMetadata<'a> as std::marker::StructuralEq>`
+warning: technically breaking changes in `<new::LogMetadata<'a> as std::cmp::Eq>`
    --> log-0.3.8\src\lib.rs:552:10
     |
 552 | #[derive(Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
@@ -31,7 +31,7 @@ warning: technically breaking changes in `<new::LogMetadata<'a> as std::marker::
     |
     = note: trait impl generalized or newly added (technically breaking)
 
-warning: technically breaking changes in `<new::LogMetadata<'a> as std::marker::StructuralPartialEq>`
+warning: technically breaking changes in `<new::LogMetadata<'a> as std::cmp::PartialEq>`
    --> log-0.3.8\src\lib.rs:552:14
     |
 552 | #[derive(Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
@@ -71,7 +71,7 @@ warning: technically breaking changes in `<new::LogMetadata<'a> as std::fmt::Deb
     |
     = note: trait impl generalized or newly added (technically breaking)
 
-warning: technically breaking changes in `<new::LogLocation as std::marker::StructuralEq>`
+warning: technically breaking changes in `<new::LogLocation as std::cmp::Eq>`
    --> log-0.3.8\src\lib.rs:604:30
     |
 604 | #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -79,7 +79,7 @@ warning: technically breaking changes in `<new::LogLocation as std::marker::Stru
     |
     = note: trait impl generalized or newly added (technically breaking)
 
-warning: technically breaking changes in `<new::LogLocation as std::marker::StructuralPartialEq>`
+warning: technically breaking changes in `<new::LogLocation as std::cmp::PartialEq>`
    --> log-0.3.8\src\lib.rs:604:34
     |
 604 | #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
