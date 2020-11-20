@@ -286,7 +286,7 @@ impl IdMapping {
     }
 
     /// Iterate over the toplevel and trait item pairs.
-    pub fn items<'a>(&'a self) -> impl Iterator<Item = (Res, Res)> + 'a {
+    pub fn items(&self) -> impl Iterator<Item = (Res, Res)> + '_ {
         self.toplevel_mapping
             .values()
             .cloned()
@@ -294,10 +294,7 @@ impl IdMapping {
     }
 
     /// Iterate over the item pairs of all children of a given item.
-    pub fn children_of<'a>(
-        &'a self,
-        parent: DefId,
-    ) -> Option<impl Iterator<Item = (DefId, DefId)> + 'a> {
+    pub fn children_of(&self, parent: DefId) -> Option<impl Iterator<Item = (DefId, DefId)> + '_> {
         self.child_mapping
             .get(&parent)
             .map(|m| m.iter().map(move |old| (*old, self.internal_mapping[old])))
@@ -412,9 +409,9 @@ impl NameMapping {
     }
 
     /// Drain the item pairs being stored.
-    pub fn drain<'a>(
-        &'a mut self,
-    ) -> impl Iterator<Item = (Option<Export<HirId>>, Option<Export<HirId>>)> + 'a {
+    pub fn drain(
+        &mut self,
+    ) -> impl Iterator<Item = (Option<Export<HirId>>, Option<Export<HirId>>)> + '_ {
         self.type_map
             .drain()
             .chain(self.value_map.drain())

@@ -23,7 +23,7 @@ error: breaking changes in `abc`
  --> bounds/new.rs:9:1
   |
 9 | pub fn abc<A: Clone>(_: A) {}
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = warning: added bound: `A: std::clone::Clone` (breaking)
 
@@ -31,9 +31,8 @@ warning: technically breaking changes in `def`
   --> bounds/new.rs:11:1
    |
 11 | pub fn def<A>(_: A) {}
-   | ^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^
    |
    = note: removed bound: `A: std::clone::Clone` (technically breaking)
 
 error: aborting due to 2 previous errors; 2 warnings emitted
-

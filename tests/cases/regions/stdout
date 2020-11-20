@@ -19,7 +19,7 @@ error: breaking changes in `abc`
   --> regions/new.rs:13:1
    |
 13 | pub fn abc(_: &bool) { }
-   | ^^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^
    |
    = warning: type error: expected `bool`, found `&bool` (breaking)
 
@@ -27,7 +27,7 @@ error: breaking changes in `def`
   --> regions/new.rs:15:1
    |
 15 | pub fn def(_: bool) { }
-   | ^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^
    |
    = warning: type error: expected `&bool`, found `bool` (breaking)
 
@@ -35,7 +35,7 @@ error: breaking changes in `efg`
   --> regions/new.rs:17:1
    |
 17 | pub fn efg(_: &str) { }
-   | ^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^
    |
    = warning: type error: expected bound lifetime parameter, found concrete lifetime (breaking)
 
@@ -43,9 +43,8 @@ error: breaking changes in `fgh`
   --> regions/new.rs:19:1
    |
 19 | pub fn fgh(_: &'static str) { }
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = warning: type error: expected bound lifetime parameter, found concrete lifetime (breaking)
 
 error: aborting due to 6 previous errors
-

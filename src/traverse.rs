@@ -20,6 +20,7 @@ use log::{debug, info};
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res, Res::Def};
 use rustc_hir::def_id::DefId;
 use rustc_hir::hir_id::HirId;
+use rustc_hir::lang_items::LangItem;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::{
     hir::exports::Export,
@@ -421,10 +422,7 @@ fn diff_adts(changes: &mut ChangeSet, id_mapping: &mut IdMapping, tcx: TyCtxt, o
         _ => return,
     };
 
-    let is_enum = match old {
-        Def(Enum, _) => true,
-        _ => false,
-    };
+    let is_enum = matches!(old, Def(Enum, _));
 
     let mut variants = BTreeMap::new();
     let mut fields = BTreeMap::new();
@@ -570,7 +568,7 @@ fn diff_traits<'tcx>(
 ) {
     use rustc_hir::Unsafety::Unsafe;
     use rustc_middle::ty::subst::GenericArgKind::Type;
-    use rustc_middle::ty::{ParamTy, PredicateKind, TyS};
+    use rustc_middle::ty::{ParamTy, PredicateAtom};
 
     debug!(
         "diff_traits: old: {:?}, new: {:?}, output: {:?}",
@@ -591,19 +589,17 @@ fn diff_traits<'tcx>(
     let mut old_sealed = false;
     let old_param_env = tcx.param_env(old);
 
-    for bound in old_param_env.caller_bounds {
-        if let PredicateKind::Trait(pred, _) = *bound.kind() {
-            let trait_ref = pred.skip_binder().trait_ref;
+    for bound in old_param_env.caller_bounds() {
+        if let PredicateAtom::Trait(pred, _) = bound.skip_binders() {
+            let trait_ref = pred.trait_ref;
 
             debug!("trait_ref substs (old): {:?}", trait_ref.substs);
 
             if id_mapping.is_private_trait(trait_ref.def_id) && trait_ref.substs.len() == 1 {
-                if let Type(&TyS {
-                    kind: TyKind::Param(ParamTy { index: 0, .. }),
-                    ..
-                }) = trait_ref.substs[0].unpack()
-                {
-                    old_sealed = true;
+                if let Type(typ) = trait_ref.substs[0].unpack() {
+                    if let TyKind::Param(ParamTy { index: 0, .. }) = typ.kind() {
+                        old_sealed = true;
+                    }
                 }
             }
         }
@@ -1096,7 +1092,7 @@ fn diff_inherent_impls<'tcx>(
 #[allow(clippy::match_same_arms)]
 fn is_impl_trait_public<'tcx>(tcx: TyCtxt<'tcx>, impl_def_id: DefId) -> bool {
     fn type_visibility(tcx: TyCtxt, ty: Ty) -> Visibility {
-        match ty.kind {
+        match ty.kind() {
             TyKind::Adt(def, _) => tcx.visibility(def.did),
 
             TyKind::Array(t, _)
@@ -1146,11 +1142,22 @@ fn diff_trait_impls<'tcx>(
     let to_new = TranslationContext::target_new(tcx, id_mapping, false);
     let to_old = TranslationContext::target_old(tcx, id_mapping, false);
 
-    for old_impl_def_id in tcx
+    // NOTE: Ignore for now core::marker::Structural{Eq, PartialEq} since
+    // these are impl'd via *Eq traits but can we want users to see regular
+    // *Eq traits here as the former are a bit auto-magical for the user
+    let structural_teq_def_id = tcx.require_lang_item(LangItem::StructuralTeq, None);
+    let structural_peq_def_id = tcx.require_lang_item(LangItem::StructuralPeq, None);
+    let structural_trait_def_ids = [structural_peq_def_id, structural_teq_def_id];
+
+    for (old_impl_def_id, _) in tcx
         .all_trait_implementations(id_mapping.get_old_crate())
         .iter()
     {
         let old_trait_def_id = tcx.impl_trait_ref(*old_impl_def_id).unwrap().def_id;
+
+        if structural_trait_def_ids.contains(&old_trait_def_id) {
+            continue;
+        }
 
         if !to_new.can_translate(old_trait_def_id) || !is_impl_trait_public(tcx, *old_impl_def_id) {
             continue;
@@ -1166,11 +1173,15 @@ fn diff_trait_impls<'tcx>(
         }
     }
 
-    for new_impl_def_id in tcx
+    for (new_impl_def_id, _) in tcx
         .all_trait_implementations(id_mapping.get_new_crate())
         .iter()
     {
         let new_trait_def_id = tcx.impl_trait_ref(*new_impl_def_id).unwrap().def_id;
+
+        if structural_trait_def_ids.contains(&new_trait_def_id) {
+            continue;
+        }
 
         if !to_old.can_translate(new_trait_def_id) || !is_impl_trait_public(tcx, *new_impl_def_id) {
             continue;
