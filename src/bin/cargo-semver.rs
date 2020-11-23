@@ -473,8 +473,10 @@ impl<'a> WorkInfo<'a> {
         current: bool,
         matches: &getopts::Matches,
     ) -> Result<(PathBuf, PathBuf)> {
-        let mut opts =
-            cargo::ops::CompileOptions::new(config, cargo::core::compiler::CompileMode::Build)?;
+        // We don't need codegen-ready artifacts (which .rlib files are) so
+        // settle for .rmeta files, which result from `cargo check` mode
+        let mode = cargo::core::compiler::CompileMode::Check { test: false };
+        let mut opts = cargo::ops::CompileOptions::new(config, mode)?;
         // we need the build plan to find our build artifacts
         opts.build_config.build_plan = true;
 
