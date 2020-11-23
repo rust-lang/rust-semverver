@@ -8,6 +8,9 @@ on:
       - master
       # Managed by bors
       - auto
+  # Run nightly checks to detect possible breakage due to upstream rustc changes
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
   build_and_test:
@@ -34,7 +37,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
+      - name: Setup latest nightly toolchain
+        run: bash ci/setup-toolchain.sh
+        if: github.event_name == 'schedule'
       - name: Run tests
         run: sh ci/run.sh ${{ matrix.os }}
 
