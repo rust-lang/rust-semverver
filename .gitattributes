@@ -1,0 +1,2 @@
+tests/full_cases/* linguist-generated
+ci/*.sh -linguist-detectable
