@@ -11,20 +11,27 @@ if [ "${OS}" = "windows" ]; then
     rustup set default-host x86_64-pc-windows-msvc
 fi
 
-rustup component add rustc-dev llvm-tools-preview
+if [ -n "${SCHEDULED}" ]; then
+    bash ci/setup-toolchain.sh
+    toolchain="+master"
+else
+    rustup component add rustc-dev llvm-tools-preview
+    toolchain="+$(cat rust-toolchain)"
+fi
 
-cargo build
-cargo test --verbose -- --nocapture
+rustc -vV
+cargo "$toolchain" build
+cargo "$toolchain" test --verbose -- --nocapture
 
 case "${OS}" in
     *"linux"*)
-        TEST_TARGET=x86_64-unknown-linux-gnu cargo test --verbose -- --nocapture
+        TEST_TARGET=x86_64-unknown-linux-gnu cargo "$toolchain" test --verbose -- --nocapture
         ;;
     *"windows"*)
-        TEST_TARGET=x86_64-pc-windows-msvc cargo test --verbose -- --nocapture
+        TEST_TARGET=x86_64-pc-windows-msvc cargo "$toolchain" test --verbose -- --nocapture
         ;;
     *"macos"*)
-        TEST_TARGET=x86_64-apple-darwin cargo test --verbose -- --nocapture
+        TEST_TARGET=x86_64-apple-darwin cargo "$toolchain" test --verbose -- --nocapture
         ;;
 esac
 
@@ -38,8 +45,8 @@ cp target/debug/rust-semverver ~/rust/cargo/bin
 # Note: Because we rely on rust nightly building the previously published
 #       semver can often fail. To avoid failing the build we first check
 #       if we can compile the previously published version.
-if cargo install --root "$(mktemp -d)" semverver > /dev/null 2>/dev/null; then
-    PATH=~/rust/cargo/bin:$PATH cargo semver | tee semver_out
+if cargo "$toolchain" install --root "$(mktemp -d)" semverver > /dev/null 2>/dev/null; then
+    PATH=~/rust/cargo/bin:$PATH cargo "$toolchain" semver | tee semver_out
     current_version="$(grep -e '^version = .*$' Cargo.toml | cut -d ' ' -f 3)"
     current_version="${current_version%\"}"
     current_version="${current_version#\"}"
