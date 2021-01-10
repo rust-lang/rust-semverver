@@ -1243,7 +1243,7 @@ pub mod tests {
     }
 
     impl Arbitrary for Span_ {
-        fn arbitrary<G: Gen>(g: &mut G) -> Span_ {
+        fn arbitrary(g: &mut Gen) -> Span_ {
             let a: u32 = Arbitrary::arbitrary(g);
             let b: u32 = Arbitrary::arbitrary(g);
             Span_(min(a, b), max(a, b))
@@ -1261,7 +1261,7 @@ pub mod tests {
     }
 
     impl Arbitrary for DefId_ {
-        fn arbitrary<G: Gen>(g: &mut G) -> DefId_ {
+        fn arbitrary(g: &mut Gen) -> DefId_ {
             use rustc_hir::def_id::{CrateNum, DefIndex};
 
             let a: u32 = Arbitrary::arbitrary(g);
@@ -1383,14 +1383,13 @@ pub mod tests {
     }
 
     impl Arbitrary for ChangeType_ {
-        fn arbitrary<G: Gen>(g: &mut G) -> ChangeType_ {
+        fn arbitrary(g: &mut Gen) -> ChangeType_ {
             use self::ChangeType_::*;
-            use rand::seq::SliceRandom;
 
             let b1 = Arbitrary::arbitrary(g);
             let b2 = Arbitrary::arbitrary(g);
 
-            [
+            g.choose(&[
                 ItemMadePublic,
                 ItemMadePrivate,
                 KindDifference,
@@ -1424,10 +1423,9 @@ pub mod tests {
                 TraitItemRemoved { defaulted: b1 },
                 TraitUnsafetyChanged { now_unsafe: b1 },
                 Unknown,
-            ]
-            .choose(g)
+            ])
             .unwrap()
-            .clone()
+            .to_owned()
         }
     }
 
