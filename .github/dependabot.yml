@@ -8,6 +8,8 @@ updates:
     schedule:
       interval: "weekly"
     ignore:
-       # These are peer deps of Cargo and should not be automatically bumped
-       - dependency-name: "semver"
-       - dependency-name: "crates-io"
+        # These are peer deps of Cargo and should not be automatically bumped
+        - dependency-name: "semver"
+        - dependency-name: "crates-io"
+        # Should sync with `quickcheck`
+        - dependency-name: "rand"
