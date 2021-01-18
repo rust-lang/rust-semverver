@@ -1222,7 +1222,7 @@ impl<'a, 'tcx> Serialize for RChangeSet<'a, 'tcx> {
 #[cfg(test)]
 pub mod tests {
     pub use super::*;
-    use quickcheck::*;
+    use quickcheck::{quickcheck, Arbitrary, Gen};
 
     use rustc_hir::def_id::DefId;
 
@@ -1262,12 +1262,26 @@ pub mod tests {
 
     impl Arbitrary for DefId_ {
         fn arbitrary(g: &mut Gen) -> DefId_ {
-            use rustc_hir::def_id::{CrateNum, DefIndex};
+            use rustc_hir::def_id::{CrateId, CrateNum, DefIndex};
 
+            // NOTE: These inner types are defined via `rustc_index::newtype_index`
+            // macro which leaves trailing 256 values for possible enum-packing
+            // so make sure to generate values only from valid value range
             let a: u32 = Arbitrary::arbitrary(g);
+            let a = if a > CrateId::MAX_AS_U32 {
+                CrateId::MAX_AS_U32
+            } else {
+                a
+            };
             let b: u32 = Arbitrary::arbitrary(g);
+            let b = if b > DefIndex::MAX_AS_U32 {
+                DefIndex::MAX_AS_U32
+            } else {
+                b
+            };
+
             DefId_(DefId {
-                krate: CrateNum::new(a as usize),
+                krate: CrateNum::Index(CrateId::from_u32(a)),
                 index: DefIndex::from(b),
             })
         }
@@ -1473,6 +1487,7 @@ pub mod tests {
     quickcheck! {
         /// The `Ord` instance of `PathChange` is transitive.
         fn ord_pchange_transitive(c1: PathChange_, c2: PathChange_, c3: PathChange_) -> bool {
+            rustc_span::with_default_session_globals(|| {
             let s1 = c1.2.iter().map(|&(add, ref s)| (add, s.clone().inner())).collect();
             let s2 = c2.2.iter().map(|&(add, ref s)| (add, s.clone().inner())).collect();
             let s3 = c3.2.iter().map(|&(add, ref s)| (add, s.clone().inner())).collect();
@@ -1496,10 +1511,12 @@ pub mod tests {
             }
 
             res
+        })
         }
 
         /// The `Ord` instance of `Change` is transitive.
         fn ord_change_transitive(c1: Change_, c2: Change_, c3: Change_) -> bool {
+            rustc_span::with_default_session_globals(|| {
             let ch1 = build_change(c1.3.inner(), c1.4, c1.5);
             let ch2 = build_change(c2.3.inner(), c2.4, c2.5);
             let ch3 = build_change(c3.3.inner(), c3.4, c3.5);
@@ -1519,11 +1536,13 @@ pub mod tests {
             }
 
             res
+        })
         }
 
         /// The maximal change category for a change set with regular changes only gets computed
         /// correctly.
         fn max_pchange(changes: Vec<PathChange_>) -> bool {
+            rustc_span::with_default_session_globals(|| {
             let mut set = ChangeSet::default();
 
             let mut interner = Interner::default();
@@ -1550,11 +1569,13 @@ pub mod tests {
             }
 
             set.max == max
+        })
         }
 
         /// The maximal change category for a change set with path changes only gets computed
         /// correctly.
         fn max_change(changes: Vec<Change_>) -> bool {
+            rustc_span::with_default_session_globals(|| {
             let mut set = ChangeSet::default();
 
             let mut interner = Interner::default();
@@ -1585,9 +1606,11 @@ pub mod tests {
             }
 
             set.max == max
+        })
         }
 
         fn max_pchange_or_change(pchanges: Vec<PathChange_>, changes: Vec<Change_>) -> bool {
+            rustc_span::with_default_session_globals(|| {
             let mut set = ChangeSet::default();
 
             let mut interner = Interner::default();
@@ -1635,10 +1658,12 @@ pub mod tests {
             }
 
             set.max == max
+        })
         }
 
         /// Difference in spans implies difference in `PathChange`s.
         fn pchange_span_neq(c1: PathChange_, c2: PathChange_) -> bool {
+            rustc_span::with_default_session_globals(|| {
             let v1 = c1.2.iter().map(|&(add, ref s)| (add, s.clone().inner())).collect();
             let v2 = c2.2.iter().map(|&(add, ref s)| (add, s.clone().inner())).collect();
 
@@ -1653,10 +1678,12 @@ pub mod tests {
             } else {
                 true
             }
+        })
         }
 
         /// Difference in spans implies difference in `Change`s.
         fn bchange_span_neq(c1: Change_, c2: Change_) -> bool {
+            rustc_span::with_default_session_globals(|| {
             let s1 = c1.3.clone().inner();
             let s2 = c2.3.clone().inner();
 
@@ -1668,6 +1695,7 @@ pub mod tests {
             } else {
                 true
             }
+        })
         }
     }
 }
