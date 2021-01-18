@@ -11,8 +11,6 @@ if [ "${OS}" = "windows" ]; then
     rustup set default-host x86_64-pc-windows-msvc
 fi
 
-rustup component add rustc-dev llvm-tools-preview
-
 cargo build
 cargo test --verbose -- --nocapture
 
