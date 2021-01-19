@@ -79,9 +79,9 @@ checksum = "81a18687293a1546b67c246452202bbbf143d239cb43494cc163da14979082da"
 
 [[package]]
 name = "cargo"
-version = "0.48.0"
+version = "0.50.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb089b07971f458df6e92fb0434e0d3d9542f304b6d82b7f288b22c7264f0e7f"
+checksum = "a7ba419c30742fe3aa35eb9badcaea2901ef08c7b61e66f2505be2f48d4afe7c"
 dependencies = [
  "anyhow",
  "atty",
@@ -90,11 +90,11 @@ dependencies = [
  "clap",
  "core-foundation",
  "crates-io",
- "crossbeam-utils",
+ "crossbeam-utils 0.8.1",
  "crypto-hash",
  "curl",
  "curl-sys",
- "env_logger 0.7.1",
+ "env_logger 0.8.2",
  "filetime",
  "flate2",
  "fwdansi",
@@ -252,6 +252,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossbeam-utils"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02d96d1e189ef58269ebe5b97953da3274d83a93af647c2ddd6f9dab28cedb8d"
+dependencies = [
+ "autocfg",
+ "cfg-if 1.0.0",
+ "lazy_static",
+]
+
+[[package]]
 name = "crypto-hash"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -313,8 +324,11 @@ version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f26ecb66b4bdca6c1409b40fb255eefc2bd4f6d135dab3c3124f80ffa2a9661e"
 dependencies = [
+ "atty",
+ "humantime 2.0.1",
  "log",
  "regex",
+ "termcolor",
 ]
 
 [[package]]
@@ -503,7 +517,7 @@ version = "0.4.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "22dcbf2a4a289528dbef21686354904e1c694ac642610a9bff9e7df730d9ec72"
 dependencies = [
- "crossbeam-utils",
+ "crossbeam-utils 0.7.2",
  "globset",
  "lazy_static",
  "log",

@@ -11,7 +11,7 @@ license-file = "LICENSE"
 edition = "2018"
 
 [dependencies]
-cargo = "0.48"
+cargo = "0.50"
 crates-io = "0.31" # Keep in sync with version pulled by Cargo
 curl = "0.4.21"
 env_logger = "0.7"
