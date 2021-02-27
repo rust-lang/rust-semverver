@@ -27,12 +27,12 @@ repository and compiled from source or installed from
 of the nighly toolchain is supported at any given time.
 
 
-If you are already using Rust nightly and have successfully installed tools like
-`cargo add` and `cargo clippy`, just do:
+It's recommended to use Rust nightly-2020-11-19. You can install it by using `rustup install nightly-2020-11-19` if you already have rustup.
+Then you can do:
 
 ```sh
-$ rustup component add rustc-dev llvm-tools-preview
-$ cargo +nightly install semverver
+$ rustup component add rustc-dev llvm-tools-preview --toolchain nightly-2020-11-19
+$ cargo +nightly-2020-11-19 install semverver
 ```
 
 You'd also need `cmake` for some dependencies, and a few common libraries (if you hit
@@ -43,7 +43,7 @@ You can also install the newest version of the tool from git:
 
 ```sh
 $ rustup component add rustc-dev llvm-tools-preview --toolchain nightly
-$ cargo +nightly install --git https://github.com/rust-dev-tools/rust-semverver
+$ cargo +nightly-2020-11-19 install --git https://github.com/rust-dev-tools/rust-semverver
 ```
 
 <details>
