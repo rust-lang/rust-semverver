@@ -7,7 +7,7 @@
 #![allow(clippy::unnested_or_patterns)]
 #![deny(warnings)]
 
-extern crate rustc_hir;
+extern crate rustc_hir; // Requires `rustup component add rustc-dev`
 extern crate rustc_infer;
 extern crate rustc_middle;
 extern crate rustc_mir;
