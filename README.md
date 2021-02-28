@@ -1,13 +1,13 @@
 # rust-semverver
 
-[![Build Status](https://github.com/rust-dev-tools/rust-semverver/workflows/CI/badge.svg?branch=master)](https://github.com/rust-dev-tools/rust-semverver/actions?query=workflow%3ACI+branch%3Amaster)
+[![Build Status](https://github.com/rust-lang/rust-semverver/workflows/CI/badge.svg?branch=master)](https://github.com/rust-lang/rust-semverver/actions?query=workflow%3ACI+branch%3Amaster)
 [![Current Version](https://meritbadge.herokuapp.com/semverver)](https://crates.io/crates/semverver)
 
 `rust-semverver` is a tool to check semver-compliance in Rust library crates. The core of
 the tool has been developed as a student project during the Google Summer of Code 2017.
 
 Details on the work done during GSoC 2017 can be found
-[here](https://github.com/rust-dev-tools/rust-semverver/blob/master/doc/gsoc.md).
+[here](https://github.com/rust-lang/rust-semverver/blob/master/doc/gsoc.md).
 
 ## Background
 
@@ -17,17 +17,18 @@ said dummy and all necessary analysis is performed in that context, where type i
 and other resources are available.
 
 More information on the inner workings of the tool can be found
-[here](https://github.com/rust-dev-tools/rust-semverver/blob/master/doc/impl_notes.md).
+[here](https://github.com/rust-lang/rust-semverver/blob/master/doc/impl_notes.md).
 
 ## Installation
 
 The tool is implemented as a cargo plugin. As of now, it can be obtained from this git
 repository and compiled from source or installed from
 [crates.io](https://crates.io/crates/semverver). Keep in mind that only the pinned version(in [rust-toolchain])
-of the nighly toolchain is supported at any given time.
+of the nightly toolchain is supported at any given time.
 
-
-It's recommended to use Rust nightly-2020-11-19. You can install it by using `rustup install nightly-2020-11-19` if you already have rustup.
+<!-- NOTE: Keep in sync with nightly date on rust-toolchain. -->
+It's recommended to use `nightly-2020-11-19` toolchain.
+You can install it by using `rustup install nightly-2020-11-19` if you already have rustup.
 Then you can do:
 
 ```sh
@@ -42,8 +43,8 @@ can be added here).
 You can also install the newest version of the tool from git:
 
 ```sh
-$ rustup component add rustc-dev llvm-tools-preview --toolchain nightly
-$ cargo +nightly-2020-11-19 install --git https://github.com/rust-dev-tools/rust-semverver
+$ rustup component add rustc-dev llvm-tools-preview --toolchain nightly-2020-11-19
+$ cargo +nightly-2020-11-19 install --git https://github.com/rust-lang/rust-semverver
 ```
 
 <details>
@@ -53,7 +54,7 @@ $ cargo +nightly-2020-11-19 install --git https://github.com/rust-dev-tools/rust
 </summary>
 
 ```sh
-$ git clone https://github.com/rust-dev-tools/rust-semverver
+$ git clone https://github.com/rust-lang/rust-semverver
 $ cd rust-semverver
 $ cargo install
 ```
@@ -88,7 +89,7 @@ Options:
     -h, --help          print this message and exit
     -V, --version       print version information and exit
     -e, --explain       print detailed error explanations
-    -q, --quiet         surpress regular cargo output, print only important
+    -q, --quiet         suppress regular cargo output, print only important
                         messages
         --show-public   print the public types in the current crate given by
                         -c or -C and exit
@@ -248,7 +249,7 @@ correctly:
 * changes from tuple structs or variants to struct variants and vice-versa
 * changes to a function or method's constness
 * additions and removals of a self-parameter on methods
-* additions and removals of (posslibly defaulted) trait items
+* additions and removals of (possibly defaulted) trait items
 * correct handling of "sealed" traits
 * changes to the unsafety of a trait
 * type changes of all toplevel items, as well as associated items in inherent impls and
@@ -262,7 +263,7 @@ the required versioning policy.
 ## Contributing
 
 Please see
-[CONTRIBUTING.md](https://github.com/rust-dev-tools/rust-semverver/blob/master/CONTRIBUTING.md).
+[CONTRIBUTING.md](https://github.com/rust-lang/rust-semverver/blob/master/CONTRIBUTING.md).
 
 ## License
 
