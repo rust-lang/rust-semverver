@@ -79,9 +79,9 @@ checksum = "81a18687293a1546b67c246452202bbbf143d239cb43494cc163da14979082da"
 
 [[package]]
 name = "cargo"
-version = "0.51.0"
+version = "0.52.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb7d89cbdcbeada632f64aa9f692e265852b0eb6ccdf3b1814716cc62101eeb6"
+checksum = "668794d3757557250a8b7bf7d0920ca60910d9635e76d008caed037ec25c39b3"
 dependencies = [
  "anyhow",
  "atty",
@@ -89,7 +89,7 @@ dependencies = [
  "cargo-platform",
  "clap",
  "core-foundation",
- "crates-io",
+ "crates-io 0.33.0",
  "crossbeam-utils",
  "crypto-hash",
  "curl",
@@ -227,6 +227,20 @@ dependencies = [
  "percent-encoding",
  "serde",
  "serde_derive",
+ "serde_json",
+ "url",
+]
+
+[[package]]
+name = "crates-io"
+version = "0.33.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "217138863f33507d7a8edef10fc673c4911679ef7aeb9ff53ee7bb82dc7bf590"
+dependencies = [
+ "anyhow",
+ "curl",
+ "percent-encoding",
+ "serde",
  "serde_json",
  "url",
 ]
@@ -884,7 +898,7 @@ version = "0.1.46"
 dependencies = [
  "anyhow",
  "cargo",
- "crates-io",
+ "crates-io 0.31.1",
  "curl",
  "env_logger",
  "log",
