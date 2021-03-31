@@ -308,8 +308,6 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
         a: ty::Binder<T>,
         b: ty::Binder<T>,
     ) -> RelateResult<'tcx, ty::Binder<T>> {
-        Ok(ty::Binder::bind(
-            self.relate(a.skip_binder(), b.skip_binder())?,
-        ))
+        Ok(a.rebind(self.relate(a.skip_binder(), b.skip_binder())?))
     }
 }

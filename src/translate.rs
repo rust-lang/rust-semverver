@@ -376,12 +376,12 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
         predicate: Predicate<'tcx>,
     ) -> Option<Predicate<'tcx>> {
         use rustc_middle::ty::{
-            OutlivesPredicate, PredicateAtom, PredicateKind, ProjectionPredicate, ProjectionTy,
-            SubtypePredicate, ToPredicate, TraitPredicate, WithOptConstParam,
+            Binder, OutlivesPredicate, PredicateAtom, PredicateKind, ProjectionPredicate,
+            ProjectionTy, SubtypePredicate, ToPredicate, TraitPredicate, WithOptConstParam,
         };
 
         Some(match predicate.skip_binders() {
-            PredicateAtom::Trait(pred, constness) => PredicateAtom::Trait(
+            PredicateAtom::Trait(pred, constness) => Binder::bind(PredicateAtom::Trait(
                 if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
                     index_map,
                     pred.trait_ref.def_id,
@@ -397,21 +397,21 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                     return None;
                 },
                 constness,
-            )
+            ))
             .potentially_quantified(self.tcx, PredicateKind::ForAll),
-            PredicateAtom::RegionOutlives(pred) => PredicateAtom::RegionOutlives({
+            PredicateAtom::RegionOutlives(pred) => Binder::bind(PredicateAtom::RegionOutlives({
                 let l = self.translate_region(pred.0);
                 let r = self.translate_region(pred.1);
                 OutlivesPredicate(l, r)
-            })
+            }))
             .potentially_quantified(self.tcx, PredicateKind::ForAll),
-            PredicateAtom::TypeOutlives(pred) => PredicateAtom::TypeOutlives({
+            PredicateAtom::TypeOutlives(pred) => Binder::bind(PredicateAtom::TypeOutlives({
                 let l = self.translate(index_map, pred.0);
                 let r = self.translate_region(pred.1);
                 OutlivesPredicate(l, r)
-            })
+            }))
             .potentially_quantified(self.tcx, PredicateKind::ForAll),
-            PredicateAtom::Projection(pred) => PredicateAtom::Projection(
+            PredicateAtom::Projection(pred) => Binder::bind(PredicateAtom::Projection(
                 if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
                     index_map,
                     pred.projection_ty.item_def_id,
@@ -427,7 +427,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                 } else {
                     return None;
                 },
-            )
+            ))
             .potentially_quantified(self.tcx, PredicateKind::ForAll),
             PredicateAtom::WellFormed(ty) => {
                 PredicateAtom::WellFormed(self.translate(index_map, ty)).to_predicate(self.tcx)

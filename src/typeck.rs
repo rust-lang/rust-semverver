@@ -74,14 +74,14 @@ impl<'a, 'tcx> BoundContext<'a, 'tcx> {
     /// Register the trait bound represented by a `TraitRef`.
     pub fn register_trait_ref(&mut self, checked_trait_ref: TraitRef<'tcx>) {
         use rustc_hir::Constness;
-        use rustc_middle::ty::TraitPredicate;
+        use rustc_middle::ty::{Binder, TraitPredicate};
 
-        let predicate = PredicateAtom::Trait(
+        let predicate = Binder::bind(PredicateAtom::Trait(
             TraitPredicate {
                 trait_ref: checked_trait_ref,
             },
             Constness::NotConst,
-        )
+        ))
         .potentially_quantified(self.infcx.tcx, PredicateKind::ForAll);
         let obligation = Obligation::new(ObligationCause::dummy(), self.given_param_env, predicate);
         self.fulfill_cx
