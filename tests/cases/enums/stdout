@@ -73,32 +73,32 @@ warning: variant with no public fields changed to a tuple variant (breaking)
    |
 19 |     Abc(u8),
    |     ^^^^^^^
-warning: variant with no public fields changed to a tuple variant (breaking)
+warning: variant with public fields changed to a tuple variant (breaking)
   --> enums/new.rs:20:5
    |
 20 |     Bcd,
    |     ^^^
-warning: variant with no public fields changed to a struct variant (breaking)
+warning: variant with public fields changed to a struct variant (breaking)
   --> enums/new.rs:21:5
    |
 21 |     Cde { f: u8 },
    |     ^^^^^^^^^^^^^
-warning: variant with no public fields changed to a tuple variant (breaking)
+warning: variant with public fields changed to a tuple variant (breaking)
   --> enums/new.rs:22:5
    |
 22 |     Def,
    |     ^^^
-warning: variant with no public fields changed to a struct variant (breaking)
+warning: variant with public fields changed to a struct variant (breaking)
   --> enums/new.rs:23:5
    |
 23 |     Efg { f: u8 },
    |     ^^^^^^^^^^^^^
-warning: private field removed from variant with private fields (breaking)
+warning: public field removed from variant with no private fields (breaking)
   --> enums/old.rs:25:11
    |
 25 |     Ghi { f: u8 },
    |           ^^^^^
-note: private field added to variant with private fields (non-breaking)
+warning: public field added to variant with no private fields (breaking)
   --> enums/new.rs:25:11
    |
 25 |     Ghi { g: u8 },
