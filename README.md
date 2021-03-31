@@ -33,19 +33,12 @@ Then you can do:
 
 ```sh
 $ rustup component add rustc-dev llvm-tools-preview --toolchain nightly-2020-11-19
-$ cargo +nightly-2020-11-19 install semverver
+$ cargo +nightly-2020-11-19 install --git https://github.com/rust-lang/rust-semverver
 ```
 
 You'd also need `cmake` for some dependencies, and a few common libraries (if you hit
 build failures because of missing system-wide dependencies, please open an issue, so they
 can be added here).
-
-You can also install the newest version of the tool from git:
-
-```sh
-$ rustup component add rustc-dev llvm-tools-preview --toolchain nightly-2020-11-19
-$ cargo +nightly-2020-11-19 install --git https://github.com/rust-lang/rust-semverver
-```
 
 <details>
 
