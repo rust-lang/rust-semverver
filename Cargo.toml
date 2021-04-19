@@ -13,7 +13,7 @@ edition = "2018"
 [dependencies]
 cargo = "0.52"
 crates-io = "0.33" # Keep in sync with version pulled by Cargo
-curl = "0.4.35"
+curl = "0.4.36"
 env_logger = "0.8"
 anyhow = "1.0.40"
 log = "0.4"
