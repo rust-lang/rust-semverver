@@ -211,61 +211,72 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                         let res: Vec<_> = preds
                             .iter()
                             .map(|p| {
-                                match p.skip_binder() {
-                                    Trait(existential_trait_ref) => {
-                                        let trait_ref = Binder::bind(existential_trait_ref)
-                                            .with_self_ty(self.tcx, dummy_self);
-                                        let did = trait_ref.skip_binder().def_id;
-                                        let substs = trait_ref.skip_binder().substs;
+                                p.map_bound(|p| {
+                                    match p {
+                                        Trait(existential_trait_ref) => {
+                                            let trait_ref = Binder::bind(existential_trait_ref)
+                                                .with_self_ty(self.tcx, dummy_self);
+                                            let did = trait_ref.skip_binder().def_id;
+                                            let substs = trait_ref.skip_binder().substs;
 
-                                        // TODO: here, the substs could also be already translated
-                                        if let Some((target_def_id, target_substs)) =
-                                            self.translate_orig_substs(index_map, did, substs)
-                                        {
-                                            let target_trait_ref = TraitRef {
-                                                def_id: target_def_id,
-                                                substs: target_substs,
-                                            };
-                                            Trait(ExistentialTraitRef::erase_self_ty(
-                                                self.tcx,
-                                                target_trait_ref,
-                                            ))
-                                        } else {
-                                            success.set(false);
-                                            err_pred
+                                            // TODO: here, the substs could also be already translated
+                                            if let Some((target_def_id, target_substs)) =
+                                                self.translate_orig_substs(index_map, did, substs)
+                                            {
+                                                let target_trait_ref = TraitRef {
+                                                    def_id: target_def_id,
+                                                    substs: target_substs,
+                                                };
+                                                Trait(ExistentialTraitRef::erase_self_ty(
+                                                    self.tcx,
+                                                    target_trait_ref,
+                                                ))
+                                            } else {
+                                                success.set(false);
+                                                err_pred
+                                            }
                                         }
-                                    }
-                                    Projection(existential_projection) => {
-                                        let projection_pred = Binder::bind(existential_projection)
-                                            .with_self_ty(self.tcx, dummy_self);
-                                        let item_def_id =
-                                            projection_pred.skip_binder().projection_ty.item_def_id;
-                                        let substs =
-                                            projection_pred.skip_binder().projection_ty.substs;
+                                        Projection(existential_projection) => {
+                                            let projection_pred =
+                                                Binder::bind(existential_projection)
+                                                    .with_self_ty(self.tcx, dummy_self);
+                                            let item_def_id = projection_pred
+                                                .skip_binder()
+                                                .projection_ty
+                                                .item_def_id;
+                                            let substs =
+                                                projection_pred.skip_binder().projection_ty.substs;
 
-                                        // TODO: here, the substs could also be already translated
-                                        if let Some((target_def_id, target_substs)) = self
-                                            .translate_orig_substs(index_map, item_def_id, substs)
-                                        {
-                                            Projection(ExistentialProjection {
-                                                item_def_id: target_def_id,
-                                                // TODO: should be it's own method in rustc
-                                                substs: self.tcx.intern_substs(&target_substs[1..]),
-                                                ty,
-                                            })
-                                        } else {
-                                            success.set(false);
-                                            err_pred
+                                            // TODO: here, the substs could also be already translated
+                                            if let Some((target_def_id, target_substs)) = self
+                                                .translate_orig_substs(
+                                                    index_map,
+                                                    item_def_id,
+                                                    substs,
+                                                )
+                                            {
+                                                Projection(ExistentialProjection {
+                                                    item_def_id: target_def_id,
+                                                    // TODO: should be it's own method in rustc
+                                                    substs: self
+                                                        .tcx
+                                                        .intern_substs(&target_substs[1..]),
+                                                    ty,
+                                                })
+                                            } else {
+                                                success.set(false);
+                                                err_pred
+                                            }
                                         }
+                                        AutoTrait(did) => AutoTrait(self.translate_orig(did)),
                                     }
-                                    AutoTrait(did) => AutoTrait(self.translate_orig(did)),
-                                }
+                                })
                             })
                             .collect();
 
                         if success.get() {
-                            let target_preds = self.tcx.mk_existential_predicates(res.iter());
-                            self.tcx.mk_dynamic(Binder::bind(target_preds), region)
+                            let target_preds = self.tcx.mk_poly_existential_predicates(res.iter());
+                            self.tcx.mk_dynamic(target_preds, region)
                         } else {
                             ty
                         }
@@ -365,12 +376,12 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
         predicate: Predicate<'tcx>,
     ) -> Option<Predicate<'tcx>> {
         use rustc_middle::ty::{
-            OutlivesPredicate, PredicateAtom, PredicateKind, ProjectionPredicate, ProjectionTy,
-            SubtypePredicate, ToPredicate, TraitPredicate, WithOptConstParam,
+            Binder, OutlivesPredicate, PredicateAtom, PredicateKind, ProjectionPredicate,
+            ProjectionTy, SubtypePredicate, ToPredicate, TraitPredicate, WithOptConstParam,
         };
 
         Some(match predicate.skip_binders() {
-            PredicateAtom::Trait(pred, constness) => PredicateAtom::Trait(
+            PredicateAtom::Trait(pred, constness) => Binder::bind(PredicateAtom::Trait(
                 if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
                     index_map,
                     pred.trait_ref.def_id,
@@ -386,21 +397,21 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                     return None;
                 },
                 constness,
-            )
+            ))
             .potentially_quantified(self.tcx, PredicateKind::ForAll),
-            PredicateAtom::RegionOutlives(pred) => PredicateAtom::RegionOutlives({
+            PredicateAtom::RegionOutlives(pred) => Binder::bind(PredicateAtom::RegionOutlives({
                 let l = self.translate_region(pred.0);
                 let r = self.translate_region(pred.1);
                 OutlivesPredicate(l, r)
-            })
+            }))
             .potentially_quantified(self.tcx, PredicateKind::ForAll),
-            PredicateAtom::TypeOutlives(pred) => PredicateAtom::TypeOutlives({
+            PredicateAtom::TypeOutlives(pred) => Binder::bind(PredicateAtom::TypeOutlives({
                 let l = self.translate(index_map, pred.0);
                 let r = self.translate_region(pred.1);
                 OutlivesPredicate(l, r)
-            })
+            }))
             .potentially_quantified(self.tcx, PredicateKind::ForAll),
-            PredicateAtom::Projection(pred) => PredicateAtom::Projection(
+            PredicateAtom::Projection(pred) => Binder::bind(PredicateAtom::Projection(
                 if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
                     index_map,
                     pred.projection_ty.item_def_id,
@@ -416,7 +427,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                 } else {
                     return None;
                 },
-            )
+            ))
             .potentially_quantified(self.tcx, PredicateKind::ForAll),
             PredicateAtom::WellFormed(ty) => {
                 PredicateAtom::WellFormed(self.translate(index_map, ty)).to_predicate(self.tcx)
