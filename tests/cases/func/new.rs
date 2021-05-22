@@ -1,4 +1,3 @@
-#![feature(const_fn)]
 pub fn abc() {}
 
 pub fn bcd(_: u8) {}

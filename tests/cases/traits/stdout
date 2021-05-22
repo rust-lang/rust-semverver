@@ -19,10 +19,8 @@ warning: removed item from trait (breaking)
 warning: removed defaulted item from trait (breaking)
   --> traits/old.rs:8:5
    |
-8  | /     fn test5() -> u8 {
-9  | |         0
-10 | |     }
-   | |_____^
+8  |     fn test5() -> u8 {
+   |     ^^^^^^^^^^^^^^^^
 warning: added item to trait (breaking)
   --> traits/new.rs:4:5
    |
@@ -31,10 +29,8 @@ warning: added item to trait (breaking)
 note: added defaulted item to trait (technically breaking)
   --> traits/new.rs:8:5
    |
-8  | /     fn test6() -> u8 {
-9  | |         0
-10 | |     }
-   | |_____^
+8  |     fn test6() -> u8 {
+   |     ^^^^^^^^^^^^^^^^
 
 error: breaking changes in `test7`
   --> traits/new.rs:11:5

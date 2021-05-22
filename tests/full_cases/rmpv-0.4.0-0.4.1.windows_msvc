@@ -46,27 +46,16 @@ error: breaking changes in `write_value_ref`
 warning: technically breaking changes in `as_ref`
    --> rmpv-0.4.1\src\lib.rs:253:5
     |
-253 | /     pub fn as_ref(&self) -> Utf8StringRef {
-254 | |         match self.s {
-255 | |             Ok(ref s) => Utf8StringRef { s: Ok(s.as_str()) },
-256 | |             Err((ref buf, err)) => Utf8StringRef { s: Err((&buf[..], err)) },
-257 | |         }
-258 | |     }
-    | |_____^
+253 |     pub fn as_ref(&self) -> Utf8StringRef {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
     = note: added item in inherent impl (technically breaking)
 
 warning: technically breaking changes in `as_ref`
    --> rmpv-0.4.1\src\lib.rs:448:5
     |
-448 | /     pub fn as_ref(&self) -> ValueRef {
-449 | |         match self {
-450 | |             &Value::Nil => ValueRef::Nil,
-451 | |             &Value::Boolean(val) => ValueRef::Boolean(val),
-...   |
-464 | |         }
-465 | |     }
-    | |_____^
+448 |     pub fn as_ref(&self) -> ValueRef {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
     = note: added item in inherent impl (technically breaking)
 

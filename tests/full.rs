@@ -68,10 +68,12 @@ mod full {
         };
 
         let expected_output = read_to_string(&expected_path)
-            .expect(&format!(
-                "could not read expected output from file {}",
-                expected_path.display()
-            ))
+            .unwrap_or_else(|_| {
+                panic!(
+                    "could not read expected output from file {}",
+                    expected_path.display()
+                )
+            })
             .lines()
             .map(|l| l.trim_end())
             .map(|l| l.to_string() + "\n")

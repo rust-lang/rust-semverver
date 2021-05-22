@@ -305,9 +305,9 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
 
     fn binders<T: Relate<'tcx>>(
         &mut self,
-        a: ty::Binder<T>,
-        b: ty::Binder<T>,
-    ) -> RelateResult<'tcx, ty::Binder<T>> {
+        a: ty::Binder<'tcx, T>,
+        b: ty::Binder<'tcx, T>,
+    ) -> RelateResult<'tcx, ty::Binder<'tcx, T>> {
         Ok(a.rebind(self.relate(a.skip_binder(), b.skip_binder())?))
     }
 }
