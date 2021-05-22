@@ -165,10 +165,9 @@ mod features {
             "rust-semverver returned an unexpected exit status"
         );
 
-        Command::new("rm")
-            .args(&[&old_rlib, &new_rlib])
-            .status()
-            .expect("could not run rm");
+        let rm_old = std::fs::remove_file(old_rlib);
+        let rm_new = std::fs::remove_file(new_rlib);
+        rm_old.and(rm_new).expect("could not remove rlib files");
     }
 
     macro_rules! test {
