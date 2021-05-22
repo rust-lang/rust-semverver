@@ -32,7 +32,7 @@ You can install it by using `rustup install nightly-2020-12-20` if you already h
 Then you can do:
 
 ```sh
-$ rustup component add rustc-dev llvm-tools-preview --toolchain nightly-2020-11-19
+$ rustup component add rustc-dev llvm-tools-preview --toolchain nightly-2020-12-20
 $ cargo +nightly-2020-12-20 install --git https://github.com/rust-lang/rust-semverver
 ```
 
