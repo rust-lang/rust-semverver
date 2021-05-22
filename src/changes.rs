@@ -88,10 +88,11 @@ impl<'a> Serialize for RSpan<'a> {
 
         assert!(lo.file.name == hi.file.name);
         let file_name = if let FileName::Real(ref name) = lo.file.name {
-            format!("{}", name.local_path().display())
+            name.local_path().map(|p| format!("{}", p.display()))
         } else {
-            "no file name".to_owned()
-        };
+            None
+        }
+        .unwrap_or_else(|| "no file name".to_owned());
 
         let mut state = serializer.serialize_struct("Span", 5)?;
         state.serialize_field("file", &file_name)?;

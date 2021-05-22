@@ -181,7 +181,7 @@ impl IdMapping {
         match param.kind {
             GenericParamDefKind::Lifetime => unreachable!(),
             GenericParamDefKind::Type { .. } => (),
-            GenericParamDefKind::Const => unreachable!(),
+            GenericParamDefKind::Const { .. } => unreachable!(),
         };
 
         self.type_params.insert(param.def_id, param.clone());
@@ -237,10 +237,8 @@ impl IdMapping {
                 Some(new.1.def_id())
             } else if let Some(new) = self.trait_item_mapping.get(&old) {
                 Some(new.1.def_id())
-            } else if let Some(new_def_id) = self.internal_mapping.get(&old) {
-                Some(*new_def_id)
             } else {
-                None
+                self.internal_mapping.get(&old).copied()
             }
         } else {
             Some(old)

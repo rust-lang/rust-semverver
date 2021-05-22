@@ -12,7 +12,7 @@ warning: path changes to `a`
    | |_______________________^
    |
    = note: added definition (technically breaking)
-   = note: this warning originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: this warning originates in the macro `blow` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 warning: path changes to `b`
   --> pathologic_paths/new.rs:10:1
@@ -27,6 +27,6 @@ warning: path changes to `b`
    | |_______________________^
    |
    = note: added definition (technically breaking)
-   = note: this warning originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: this warning originates in the macro `blow` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 warning: 2 warnings emitted
