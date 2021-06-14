@@ -118,6 +118,7 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
     fn relate_with_variance<T: Relate<'tcx>>(
         &mut self,
         _: ty::Variance,
+        _: ty::VarianceDiagInfo<'tcx>,
         a: T,
         b: T,
     ) -> RelateResult<'tcx, T> {
@@ -197,7 +198,7 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
                 None
             }
             (&TyKind::RawPtr(a_mt), &TyKind::RawPtr(b_mt)) => {
-                let _ = self.relate(a_mt, b_mt)?;
+                let _ = ty::relate::relate_type_and_mut(self, a_mt, b_mt, ty::VarianceDiagMutKind::RawPtr)?;
                 None
             }
             (&TyKind::Ref(a_r, a_ty, _), &TyKind::Ref(b_r, b_ty, _)) => {
