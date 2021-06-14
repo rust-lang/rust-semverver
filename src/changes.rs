@@ -1263,14 +1263,14 @@ pub mod tests {
 
     impl Arbitrary for DefId_ {
         fn arbitrary(g: &mut Gen) -> DefId_ {
-            use rustc_hir::def_id::{CrateId, CrateNum, DefIndex};
+            use rustc_hir::def_id::{CrateNum, DefIndex};
 
             // NOTE: These inner types are defined via `rustc_index::newtype_index`
             // macro which leaves trailing 256 values for possible enum-packing
             // so make sure to generate values only from valid value range
             let a: u32 = Arbitrary::arbitrary(g);
-            let a = if a > CrateId::MAX_AS_U32 {
-                CrateId::MAX_AS_U32
+            let a = if a > CrateNum::MAX_AS_U32 {
+                CrateNum::MAX_AS_U32
             } else {
                 a
             };
@@ -1282,7 +1282,7 @@ pub mod tests {
             };
 
             DefId_(DefId {
-                krate: CrateNum::Index(CrateId::from_u32(a)),
+                krate: CrateNum::from_u32(a),
                 index: DefIndex::from(b),
             })
         }
