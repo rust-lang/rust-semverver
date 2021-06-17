@@ -1182,7 +1182,7 @@ impl<'a> Serialize for RPathChanges<'a> {
         let mut seq = serializer.serialize_seq(Some(self.1.len()))?;
 
         for e in &self.1 {
-            seq.serialize_element(&RPathChange(self.0, &e))?;
+            seq.serialize_element(&RPathChange(self.0, e))?;
         }
 
         seq.end()
