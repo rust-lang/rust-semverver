@@ -3,8 +3,9 @@
 
 extern crate rustc_session;
 
-use cargo::core::{Package, PackageId, Source, SourceId, Workspace};
+use cargo::core::{FeatureValue, Package, PackageId, Source, SourceId, Workspace};
 use cargo::sources::RegistrySource;
+use cargo::util::interning::InternedString;
 use curl::easy::Easy;
 use log::debug;
 use rustc_session::getopts;
@@ -15,6 +16,7 @@ use std::{
     io::Write,
     path::{Path, PathBuf},
     process::{Command, Stdio},
+    rc::Rc,
     sync::{Arc, RwLock},
 };
 
@@ -491,11 +493,16 @@ impl<'a> WorkInfo<'a> {
         };
 
         if let Some(s) = matches.opt_str("features") {
-            opts.features = s.split(' ').map(str::to_owned).collect();
+            opts.cli_features.features = Rc::new(
+                s.split(' ')
+                    .map(InternedString::new)
+                    .map(|f| FeatureValue::new(f))
+                    .collect(),
+            );
         }
 
-        opts.all_features = matches.opt_present("all-features");
-        opts.no_default_features = matches.opt_present("no-default-features");
+        opts.cli_features.all_features = matches.opt_present("all-features");
+        opts.cli_features.uses_default_features = !matches.opt_present("no-default-features");
 
         env::set_var(
             "RUSTFLAGS",
