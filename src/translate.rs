@@ -311,7 +311,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                                 debug!("translating type param: {:?}", param);
                                 let type_param = self.id_mapping.get_type_param(&target_def_id);
                                 debug!("translated type param: {:?}", type_param);
-                                match self.tcx.mk_param_from_def(&type_param).unpack() {
+                                match self.tcx.mk_param_from_def(type_param).unpack() {
                                     GenericArgKind::Type(param_t) => param_t,
                                     _ => unreachable!(),
                                 }
@@ -366,7 +366,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
 
     /// Translate an item's type.
     pub fn translate_item_type(&self, orig_def_id: DefId, orig: Ty<'tcx>) -> Ty<'tcx> {
-        self.translate(&self.construct_index_map(orig_def_id), &orig)
+        self.translate(&self.construct_index_map(orig_def_id), orig)
     }
 
     /// Translate a predicate using a type parameter index map.
@@ -420,7 +420,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                                 substs: target_substs,
                                 item_def_id: target_def_id,
                             },
-                            ty: self.translate(index_map, &pred.ty),
+                            ty: self.translate(index_map, pred.ty),
                         }
                     } else {
                         return None;
@@ -434,7 +434,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                 }
                 PredicateKind::ClosureKind(did, substs, kind) => PredicateKind::ClosureKind(
                     self.translate_orig(did),
-                    self.translate(index_map, &substs),
+                    self.translate(index_map, substs),
                     kind,
                 ),
                 PredicateKind::Subtype(pred) => PredicateKind::Subtype({
@@ -459,8 +459,8 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                     }
                 }
                 PredicateKind::ConstEquate(c1, c2) => PredicateKind::ConstEquate(
-                    self.translate(index_map, &c1),
-                    self.translate(index_map, &c2),
+                    self.translate(index_map, c1),
+                    self.translate(index_map, c2),
                 ),
                 // NOTE: Only used for Chalk trait solver
                 PredicateKind::TypeWellFormedFromEnv(_) => unimplemented!(),
@@ -513,7 +513,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
         let index_map = self.construct_index_map(orig_def_id);
         TraitRef {
             def_id: self.translate_orig(orig_trait_ref.def_id),
-            substs: self.translate(&index_map, &orig_trait_ref.substs),
+            substs: self.translate(&index_map, orig_trait_ref.substs),
         }
     }
 

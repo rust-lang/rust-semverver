@@ -431,8 +431,8 @@ pub struct WorkInfo<'a> {
 impl<'a> WorkInfo<'a> {
     /// Construct a package/workspace pair for the `manifest_path`
     pub fn local(config: &'a cargo::Config, manifest_path: &Path) -> Result<WorkInfo<'a>> {
-        let workspace = Workspace::new(&manifest_path, config)?;
-        let package = workspace.load(&manifest_path)?;
+        let workspace = Workspace::new(manifest_path, config)?;
+        let package = workspace.load(manifest_path)?;
         Ok(Self { package, workspace })
     }
 
@@ -443,7 +443,7 @@ impl<'a> WorkInfo<'a> {
         &PackageNameAndVersion { name, version }: &PackageNameAndVersion,
     ) -> Result<WorkInfo<'a>> {
         let source = {
-            let source_id = SourceId::crates_io(&config)?;
+            let source_id = SourceId::crates_io(config)?;
             let mut source = RegistrySource::remote(source_id, &HashSet::new(), config);
 
             debug!("source id loaded: {:?}", source_id);
