@@ -9,6 +9,7 @@ version = "0.1.47"
 authors = ["Inokentiy Babushkin <twk@twki.de>"]
 license-file = "LICENSE"
 edition = "2018"
+exclude = ["/ci/*", "/.github/*", "/doc"]
 
 [dependencies]
 cargo = "0.54"
