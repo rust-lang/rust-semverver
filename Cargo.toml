@@ -11,13 +11,13 @@ license-file = "LICENSE"
 edition = "2018"
 
 [dependencies]
-cargo = "0.54"
+cargo = "0.55"
 crates-io = "0.33" # Keep in sync with version pulled by Cargo
 curl = "0.4.38"
 env_logger = "0.9"
 anyhow = "1.0.42"
 log = "0.4"
-semver = "0.10" # Keep in sync with version pulled by Cargo
+semver = "1.0" # Keep in sync with version pulled by Cargo
 serde = { version = "1.0.127", features = ["derive"] }
 serde_json = "1.0.66"
 
