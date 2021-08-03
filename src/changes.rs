@@ -14,7 +14,7 @@ use rustc_middle::ty::{error::TypeError, Predicate};
 use rustc_session::Session;
 use rustc_span::symbol::Symbol;
 use rustc_span::{FileName, Span};
-use semver::Version;
+use semver::{BuildMetadata, Prerelease, Version};
 use std::{
     cmp::Ordering,
     collections::{BTreeMap, BTreeSet, HashMap},
@@ -1088,12 +1088,12 @@ impl<'tcx> ChangeSet<'tcx> {
     fn get_new_version(&self, version: &str) -> Option<String> {
         if let Ok(mut new_version) = Version::parse(version) {
             if new_version.major == 0 {
-                new_version.increment_patch();
+                increment_patch(&mut new_version);
             } else {
                 match self.max {
-                    Patch => new_version.increment_patch(),
-                    NonBreaking | TechnicallyBreaking => new_version.increment_minor(),
-                    Breaking => new_version.increment_major(),
+                    Patch => increment_patch(&mut new_version),
+                    NonBreaking | TechnicallyBreaking => increment_minor(&mut new_version),
+                    Breaking => increment_major(&mut new_version),
                 }
             }
 
@@ -1699,4 +1699,25 @@ pub mod tests {
         })
         }
     }
+}
+
+fn increment_patch(v: &mut Version) {
+    v.patch += 1;
+    v.pre = Prerelease::EMPTY;
+    v.build = BuildMetadata::EMPTY;
+}
+
+fn increment_minor(v: &mut Version) {
+    v.minor += 1;
+    v.patch = 0;
+    v.pre = Prerelease::EMPTY;
+    v.build = BuildMetadata::EMPTY;
+}
+
+fn increment_major(v: &mut Version) {
+    v.major += 1;
+    v.minor = 0;
+    v.patch = 0;
+    v.pre = Prerelease::EMPTY;
+    v.build = BuildMetadata::EMPTY;
 }
