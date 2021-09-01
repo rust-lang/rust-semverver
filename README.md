@@ -1,7 +1,7 @@
 # rust-semverver
 
 [![Build Status](https://github.com/rust-lang/rust-semverver/workflows/CI/badge.svg?branch=master)](https://github.com/rust-lang/rust-semverver/actions?query=workflow%3ACI+branch%3Amaster)
-[![Current Version](https://meritbadge.herokuapp.com/semverver)](https://crates.io/crates/semverver)
+[![Current Version](https://img.shields.io/crates/v/semverver.svg)](https://crates.io/crates/semverver)
 
 `rust-semverver` is a tool to check semver-compliance in Rust library crates. The core of
 the tool has been developed as a student project during the Google Summer of Code 2017.
