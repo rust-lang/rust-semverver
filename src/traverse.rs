@@ -17,6 +17,7 @@ use crate::{
     typeck::{BoundContext, TypeComparisonContext},
 };
 use log::{debug, info};
+use rustc_const_eval::const_eval::is_const_fn;
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res, Res::Def};
 use rustc_hir::def_id::DefId;
 use rustc_hir::hir_id::HirId;
@@ -31,7 +32,6 @@ use rustc_middle::{
         Visibility::Public,
     },
 };
-use rustc_mir::const_eval::is_const_fn;
 use std::collections::{BTreeMap, HashSet, VecDeque};
 
 /// The main entry point to our analysis passes.
