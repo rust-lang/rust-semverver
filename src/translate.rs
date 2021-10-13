@@ -382,7 +382,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
 
         Some(
             match predicate.kind().skip_binder() {
-                PredicateKind::Trait(pred, constness) => PredicateKind::Trait(
+                PredicateKind::Trait(pred) => PredicateKind::Trait(
                     if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
                         index_map,
                         pred.trait_ref.def_id,
@@ -393,11 +393,11 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                                 def_id: target_def_id,
                                 substs: target_substs,
                             },
+                            constness: pred.constness,
                         }
                     } else {
                         return None;
                     },
-                    constness,
                 ),
                 PredicateKind::RegionOutlives(pred) => PredicateKind::RegionOutlives({
                     let l = self.translate_region(pred.0);
