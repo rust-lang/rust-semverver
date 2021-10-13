@@ -8,7 +8,7 @@ use rustc_infer::infer::InferCtxt;
 use rustc_middle::ty::{
     fold::{BottomUpFolder, TypeFoldable, TypeFolder},
     subst::{GenericArg, InternalSubsts, SubstsRef},
-    GenericParamDefKind, ParamEnv, Predicate, Region, TraitRef, Ty, TyCtxt,
+    GenericParamDefKind, ParamEnv, Predicate, Region, TraitRef, Ty, TyCtxt, Unevaluated,
 };
 use std::collections::HashMap;
 
@@ -376,8 +376,8 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
         predicate: Predicate<'tcx>,
     ) -> Option<Predicate<'tcx>> {
         use rustc_middle::ty::{
-            OutlivesPredicate, PredicateKind, ProjectionPredicate, ProjectionTy, SubtypePredicate,
-            ToPredicate, TraitPredicate, WithOptConstParam,
+            CoercePredicate, OutlivesPredicate, PredicateKind, ProjectionPredicate, ProjectionTy,
+            SubtypePredicate, ToPredicate, TraitPredicate, WithOptConstParam,
         };
 
         Some(
@@ -446,14 +446,22 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                         b: r,
                     }
                 }),
-                PredicateKind::ConstEvaluatable(param, orig_substs) => {
+                PredicateKind::Coerce(pred) => PredicateKind::Coerce({
+                    let a = self.translate(index_map, pred.a);
+                    let b = self.translate(index_map, pred.b);
+                    CoercePredicate { a, b }
+                }),
+                PredicateKind::ConstEvaluatable(uv) => {
                     if let Some((target_def_id, target_substs)) =
-                        self.translate_orig_substs(index_map, param.did, orig_substs)
+                        self.translate_orig_substs(index_map, uv.def.did, uv.substs(self.tcx))
                     {
                         // TODO: We could probably use translated version for
                         // `WithOptConstParam::const_param_did`
                         let const_param = WithOptConstParam::unknown(target_def_id);
-                        PredicateKind::ConstEvaluatable(const_param, target_substs)
+                        PredicateKind::ConstEvaluatable(Unevaluated::new(
+                            const_param,
+                            target_substs,
+                        ))
                     } else {
                         return None;
                     }

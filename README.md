@@ -27,13 +27,13 @@ repository and compiled from source or installed from
 of the nightly toolchain is supported at any given time.
 
 <!-- NOTE: Keep in sync with nightly date on rust-toolchain. -->
-It's recommended to use `nightly-2021-08-16` toolchain.
-You can install it by using `rustup install nightly-2021-08-16` if you already have rustup.
+It's recommended to use `nightly-2021-08-31` toolchain.
+You can install it by using `rustup install nightly-2021-08-31` if you already have rustup.
 Then you can do:
 
 ```sh
-$ rustup component add rustc-dev llvm-tools-preview --toolchain nightly-2021-08-16
-$ cargo +nightly-2021-08-16 install --git https://github.com/rust-lang/rust-semverver
+$ rustup component add rustc-dev llvm-tools-preview --toolchain nightly-2021-08-31
+$ cargo +nightly-2021-08-31 install --git https://github.com/rust-lang/rust-semverver
 ```
 
 You'd also need `cmake` for some dependencies, and a few common libraries (if you hit
