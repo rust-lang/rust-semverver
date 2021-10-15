@@ -325,7 +325,7 @@ impl IdMapping {
 }
 
 /// An export that could be missing from one of the crate versions.
-type OptionalExport = Option<Export<HirId>>;
+type OptionalExport = Option<Export>;
 
 /// A mapping from names to pairs of old and new exports.
 ///
@@ -343,11 +343,11 @@ pub struct NameMapping {
 
 impl NameMapping {
     /// Insert a single export in the appropriate map, at the appropriate position.
-    fn insert(&mut self, item: Export<HirId>, old: bool) {
+    fn insert(&mut self, item: Export, old: bool) {
         use rustc_hir::def::DefKind::*;
         use rustc_hir::def::Res::*;
 
-        let map = match item.res {
+        let map = match item.res.expect_non_local::<HirId>() {
             Def(kind, _) => match kind {
                 Mod |
                 Struct |
@@ -396,7 +396,7 @@ impl NameMapping {
     }
 
     /// Add all items from two vectors of old/new exports.
-    pub fn add(&mut self, old_items: Vec<Export<HirId>>, new_items: Vec<Export<HirId>>) {
+    pub fn add(&mut self, old_items: Vec<Export>, new_items: Vec<Export>) {
         for item in old_items {
             self.insert(item, true);
         }
@@ -407,9 +407,7 @@ impl NameMapping {
     }
 
     /// Drain the item pairs being stored.
-    pub fn drain(
-        &mut self,
-    ) -> impl Iterator<Item = (Option<Export<HirId>>, Option<Export<HirId>>)> + '_ {
+    pub fn drain(&mut self) -> impl Iterator<Item = (Option<Export>, Option<Export>)> + '_ {
         self.type_map
             .drain()
             .chain(self.value_map.drain())

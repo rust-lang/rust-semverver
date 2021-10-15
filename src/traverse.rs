@@ -68,7 +68,7 @@ pub fn run_analysis(tcx: TyCtxt, old: DefId, new: DefId) -> ChangeSet {
 }
 
 // Get the visibility of the inner item, given the outer item's visibility.
-fn get_vis(outer_vis: Visibility, def: Export<HirId>) -> Visibility {
+fn get_vis(outer_vis: Visibility, def: Export) -> Visibility {
     if outer_vis == Public {
         def.vis
     } else {
@@ -156,7 +156,8 @@ fn diff_structure<'tcx>(
             match items {
                 // an item pair is found
                 (Some(o), Some(n)) => {
-                    if let (Def(Mod, o_def_id), Def(Mod, n_def_id)) = (o.res, n.res) {
+                    let (o_res, n_res) = (o.res.expect_non_local(), n.res.expect_non_local());
+                    if let (Def(Mod, o_def_id), Def(Mod, n_def_id)) = (o_res, n_res) {
                         if visited.insert((o_def_id, n_def_id)) {
                             let o_vis = get_vis(old_vis, o);
                             let n_vis = get_vis(new_vis, n);
@@ -182,16 +183,16 @@ fn diff_structure<'tcx>(
 
                             mod_queue.push_back((o_def_id, n_def_id, o_vis, n_vis));
                         }
-                    } else if id_mapping.add_export(o.res, n.res) {
+                    } else if id_mapping.add_export(o_res, n_res) {
                         // struct constructors are weird/hard - let's go shopping!
                         if let (Def(Ctor(CtorOf::Struct, _), _), Def(Ctor(CtorOf::Struct, _), _)) =
-                            (o.res, n.res)
+                            (o_res, n_res)
                         {
                             continue;
                         }
 
-                        let o_def_id = o.res.def_id();
-                        let n_def_id = n.res.def_id();
+                        let o_def_id = o_res.def_id();
+                        let n_def_id = n_res.def_id();
                         let o_vis = get_vis(old_vis, o);
                         let n_vis = get_vis(new_vis, n);
 
@@ -211,7 +212,7 @@ fn diff_structure<'tcx>(
                             changes.add_change(ChangeType::ItemMadePublic, o_def_id, None);
                         }
 
-                        let (o_kind, n_kind) = match (o.res, n.res) {
+                        let (o_kind, n_kind) = match (o_res, n_res) {
                             (Res::Def(o_kind, _), Res::Def(n_kind, _)) => (o_kind, n_kind),
                             _ => {
                                 // a non-matching item pair (seriously broken though) -
@@ -257,7 +258,7 @@ fn diff_structure<'tcx>(
                             // that need to be compared
                             (Fn, Fn) => {
                                 diff_generics(changes, id_mapping, tcx, true, o_def_id, n_def_id);
-                                diff_fn(changes, tcx, o.res, n.res);
+                                diff_fn(changes, tcx, o_res, n_res);
                             }
                             // type aliases can declare generics, too
                             (TyAlias, TyAlias) => {
@@ -268,7 +269,7 @@ fn diff_structure<'tcx>(
                             // fields
                             (Struct, Struct) | (Union, Union) | (Enum, Enum) => {
                                 diff_generics(changes, id_mapping, tcx, false, o_def_id, n_def_id);
-                                diff_adts(changes, id_mapping, tcx, o.res, n.res);
+                                diff_adts(changes, id_mapping, tcx, o_res, n_res);
                             }
                             // trait definitions can declare generics and require us to check
                             // for trait item addition and removal, as well as changes to their
@@ -298,7 +299,7 @@ fn diff_structure<'tcx>(
                 // only an old item is found
                 (Some(o), None) => {
                     // struct constructors are weird/hard - let's go shopping!
-                    if let Def(Ctor(CtorOf::Struct, _), _) = o.res {
+                    if let Def(Ctor(CtorOf::Struct, _), _) = o.res.expect_non_local::<HirId>() {
                         continue;
                     }
 
@@ -310,7 +311,7 @@ fn diff_structure<'tcx>(
                 // only a new item is found
                 (None, Some(n)) => {
                     // struct constructors are weird/hard - let's go shopping!
-                    if let Def(Ctor(CtorOf::Struct, _), _) = n.res {
+                    if let Def(Ctor(CtorOf::Struct, _), _) = n.res.expect_non_local::<HirId>() {
                         continue;
                     }
 
@@ -327,7 +328,7 @@ fn diff_structure<'tcx>(
 
     // finally, process item additions and removals
     for n in additions {
-        let n_def_id = n.res.def_id();
+        let n_def_id = n.res.expect_non_local::<HirId>().def_id();
 
         if !id_mapping.contains_new_id(n_def_id) {
             id_mapping.add_non_mapped(n_def_id);
@@ -338,7 +339,7 @@ fn diff_structure<'tcx>(
     }
 
     for o in removals {
-        let o_def_id = o.res.def_id();
+        let o_def_id = o.res.expect_non_local::<HirId>().def_id();
 
         // reuse an already existing path change entry, if possible
         if id_mapping.contains_old_id(o_def_id) {
