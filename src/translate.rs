@@ -377,11 +377,10 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
     ) -> Option<Predicate<'tcx>> {
         use rustc_middle::ty::{
             CoercePredicate, OutlivesPredicate, PredicateKind, ProjectionPredicate, ProjectionTy,
-            SubtypePredicate, ToPredicate, TraitPredicate, WithOptConstParam,
+            self, SubtypePredicate, ToPredicate, TraitPredicate, WithOptConstParam,
         };
 
-        Some(
-            match predicate.kind().skip_binder() {
+        let pred = match predicate.kind().skip_binder() {
                 PredicateKind::Trait(pred) => PredicateKind::Trait(
                     if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
                         index_map,
@@ -472,9 +471,9 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                 ),
                 // NOTE: Only used for Chalk trait solver
                 PredicateKind::TypeWellFormedFromEnv(_) => unimplemented!(),
-            }
-            .to_predicate(self.tcx),
-        )
+            };
+
+        Some(ty::Binder::dummy(pred).to_predicate(self.tcx))
     }
 
     /// Translate a slice of predicates in the context of an item.
