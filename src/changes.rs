@@ -370,6 +370,9 @@ impl<'tcx> ChangeType<'tcx> {
     pub fn to_category(&self) -> ChangeCategory {
         // TODO: slightly messy and unreadable.
         match *self {
+            //
+            // Breaking
+            //
             ItemMadePrivate |
             KindDifference |
             StaticMutabilityChanged { now_mut: false } |
@@ -381,8 +384,7 @@ impl<'tcx> ChangeType<'tcx> {
             TypeParameterRemoved { .. } |
             VariantAdded |
             VariantRemoved |
-            VariantFieldAdded { public: true, .. } |
-            VariantFieldAdded { public: false, total_public: true, .. } |
+            VariantFieldAdded { total_public: true, .. } |
             VariantFieldRemoved { public: true, .. } |
             VariantFieldRemoved { public: false, is_enum: true, .. } |
             VariantStyleChanged { .. } |
@@ -397,12 +399,19 @@ impl<'tcx> ChangeType<'tcx> {
             TraitImplTightened |
             AssociatedItemRemoved |
             Unknown => Breaking,
+            //
+            // Technically breaking
+            //
             MethodSelfChanged { now_self: true } |
             TraitItemAdded { .. } | // either defaulted or sealed
             BoundsLoosened { trait_def: false, .. } |
             TraitImplLoosened |
             AssociatedItemAdded |
+            VariantFieldAdded { public: true, .. } |
             ItemMadePublic => TechnicallyBreaking,
+            //
+            // Non breaking
+            //
             StaticMutabilityChanged { now_mut: true } |
             VarianceLoosened |
             TypeParameterAdded { defaulted: true } |
