@@ -1239,7 +1239,7 @@ pub mod tests {
     use std::cmp::{max, min};
 
     use rustc_span::hygiene::SyntaxContext;
-    use rustc_span::symbol::Interner;
+    use rustc_span::symbol::sym;
     use rustc_span::BytePos;
 
     /// A wrapper for `Span` that can be randomly generated.
@@ -1248,7 +1248,12 @@ pub mod tests {
 
     impl Span_ {
         pub fn inner(self) -> Span {
-            Span::new(BytePos(self.0), BytePos(self.1), SyntaxContext::root())
+            Span::new(
+                BytePos(self.0),
+                BytePos(self.1),
+                SyntaxContext::root(),
+                None,
+            )
         }
     }
 
@@ -1469,8 +1474,7 @@ pub mod tests {
         output: bool,
         changes: Vec<(ChangeType_, Option<Span_>)>,
     ) -> Change<'a> {
-        let mut interner = Interner::default();
-        let mut change = Change::new(Name::Symbol(RSymbol(interner.intern("test"))), s1, output);
+        let mut change = Change::new(Name::Symbol(RSymbol(sym::test)), s1, output);
 
         for (type_, span) in changes {
             change.insert(type_.inner(), span.map(|s| s.inner()));
@@ -1484,8 +1488,7 @@ pub mod tests {
 
     /// Construct `PathChange`s from things that can be generated.
     fn build_path_change(s1: Span, spans: Vec<(bool, Span)>) -> PathChange {
-        let mut interner = Interner::default();
-        let mut change = PathChange::new(interner.intern("test"), s1);
+        let mut change = PathChange::new(sym::test, s1);
 
         for (add, span) in spans {
             change.insert(span, add);
@@ -1555,8 +1558,7 @@ pub mod tests {
             rustc_span::create_default_session_globals_then(|| {
             let mut set = ChangeSet::default();
 
-            let mut interner = Interner::default();
-            let name = interner.intern("test");
+            let name = sym::test;
 
             let max = changes
                 .iter()
@@ -1588,8 +1590,7 @@ pub mod tests {
             rustc_span::create_default_session_globals_then(|| {
             let mut set = ChangeSet::default();
 
-            let mut interner = Interner::default();
-            let name = interner.intern("test");
+            let name = sym::test;
 
             let max = changes
                 .iter()
@@ -1623,8 +1624,7 @@ pub mod tests {
             rustc_span::create_default_session_globals_then(|| {
             let mut set = ChangeSet::default();
 
-            let mut interner = Interner::default();
-            let name = interner.intern("test");
+            let name = sym::test;
 
             let max = pchanges
                 .iter()

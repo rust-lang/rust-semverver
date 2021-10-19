@@ -8,7 +8,7 @@ use rustc_infer::infer::InferCtxt;
 use rustc_middle::ty::{
     fold::{BottomUpFolder, TypeFoldable, TypeFolder},
     subst::{GenericArg, InternalSubsts, SubstsRef},
-    GenericParamDefKind, ParamEnv, Predicate, Region, TraitRef, Ty, TyCtxt,
+    GenericParamDefKind, ParamEnv, Predicate, Region, TraitRef, Ty, TyCtxt, Unevaluated,
 };
 use std::collections::HashMap;
 
@@ -376,97 +376,99 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
         predicate: Predicate<'tcx>,
     ) -> Option<Predicate<'tcx>> {
         use rustc_middle::ty::{
-            OutlivesPredicate, PredicateKind, ProjectionPredicate, ProjectionTy, SubtypePredicate,
-            ToPredicate, TraitPredicate, WithOptConstParam,
+            self, CoercePredicate, OutlivesPredicate, PredicateKind, ProjectionPredicate,
+            ProjectionTy, SubtypePredicate, ToPredicate, TraitPredicate, WithOptConstParam,
         };
 
-        Some(
-            match predicate.kind().skip_binder() {
-                PredicateKind::Trait(pred, constness) => PredicateKind::Trait(
-                    if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
-                        index_map,
-                        pred.trait_ref.def_id,
-                        pred.trait_ref.substs,
-                    ) {
-                        TraitPredicate {
-                            trait_ref: TraitRef {
-                                def_id: target_def_id,
-                                substs: target_substs,
-                            },
-                        }
-                    } else {
-                        return None;
-                    },
-                    constness,
-                ),
-                PredicateKind::RegionOutlives(pred) => PredicateKind::RegionOutlives({
-                    let l = self.translate_region(pred.0);
-                    let r = self.translate_region(pred.1);
-                    OutlivesPredicate(l, r)
-                }),
-                PredicateKind::TypeOutlives(pred) => PredicateKind::TypeOutlives({
-                    let l = self.translate(index_map, pred.0);
-                    let r = self.translate_region(pred.1);
-                    OutlivesPredicate(l, r)
-                }),
-                PredicateKind::Projection(pred) => PredicateKind::Projection(
-                    if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
-                        index_map,
-                        pred.projection_ty.item_def_id,
-                        pred.projection_ty.substs,
-                    ) {
-                        ProjectionPredicate {
-                            projection_ty: ProjectionTy {
-                                substs: target_substs,
-                                item_def_id: target_def_id,
-                            },
-                            ty: self.translate(index_map, pred.ty),
-                        }
-                    } else {
-                        return None;
-                    },
-                ),
-                PredicateKind::WellFormed(ty) => {
-                    PredicateKind::WellFormed(self.translate(index_map, ty))
-                }
-                PredicateKind::ObjectSafe(did) => {
-                    PredicateKind::ObjectSafe(self.translate_orig(did))
-                }
-                PredicateKind::ClosureKind(did, substs, kind) => PredicateKind::ClosureKind(
-                    self.translate_orig(did),
-                    self.translate(index_map, substs),
-                    kind,
-                ),
-                PredicateKind::Subtype(pred) => PredicateKind::Subtype({
-                    let l = self.translate(index_map, pred.a);
-                    let r = self.translate(index_map, pred.b);
-                    SubtypePredicate {
-                        a_is_expected: pred.a_is_expected,
-                        a: l,
-                        b: r,
+        let pred = match predicate.kind().skip_binder() {
+            PredicateKind::Trait(pred) => PredicateKind::Trait(
+                if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
+                    index_map,
+                    pred.trait_ref.def_id,
+                    pred.trait_ref.substs,
+                ) {
+                    TraitPredicate {
+                        trait_ref: TraitRef {
+                            def_id: target_def_id,
+                            substs: target_substs,
+                        },
+                        constness: pred.constness,
                     }
-                }),
-                PredicateKind::ConstEvaluatable(param, orig_substs) => {
-                    if let Some((target_def_id, target_substs)) =
-                        self.translate_orig_substs(index_map, param.did, orig_substs)
-                    {
-                        // TODO: We could probably use translated version for
-                        // `WithOptConstParam::const_param_did`
-                        let const_param = WithOptConstParam::unknown(target_def_id);
-                        PredicateKind::ConstEvaluatable(const_param, target_substs)
-                    } else {
-                        return None;
+                } else {
+                    return None;
+                },
+            ),
+            PredicateKind::RegionOutlives(pred) => PredicateKind::RegionOutlives({
+                let l = self.translate_region(pred.0);
+                let r = self.translate_region(pred.1);
+                OutlivesPredicate(l, r)
+            }),
+            PredicateKind::TypeOutlives(pred) => PredicateKind::TypeOutlives({
+                let l = self.translate(index_map, pred.0);
+                let r = self.translate_region(pred.1);
+                OutlivesPredicate(l, r)
+            }),
+            PredicateKind::Projection(pred) => PredicateKind::Projection(
+                if let Some((target_def_id, target_substs)) = self.translate_orig_substs(
+                    index_map,
+                    pred.projection_ty.item_def_id,
+                    pred.projection_ty.substs,
+                ) {
+                    ProjectionPredicate {
+                        projection_ty: ProjectionTy {
+                            substs: target_substs,
+                            item_def_id: target_def_id,
+                        },
+                        ty: self.translate(index_map, pred.ty),
                     }
-                }
-                PredicateKind::ConstEquate(c1, c2) => PredicateKind::ConstEquate(
-                    self.translate(index_map, c1),
-                    self.translate(index_map, c2),
-                ),
-                // NOTE: Only used for Chalk trait solver
-                PredicateKind::TypeWellFormedFromEnv(_) => unimplemented!(),
+                } else {
+                    return None;
+                },
+            ),
+            PredicateKind::WellFormed(ty) => {
+                PredicateKind::WellFormed(self.translate(index_map, ty))
             }
-            .to_predicate(self.tcx),
-        )
+            PredicateKind::ObjectSafe(did) => PredicateKind::ObjectSafe(self.translate_orig(did)),
+            PredicateKind::ClosureKind(did, substs, kind) => PredicateKind::ClosureKind(
+                self.translate_orig(did),
+                self.translate(index_map, substs),
+                kind,
+            ),
+            PredicateKind::Subtype(pred) => PredicateKind::Subtype({
+                let l = self.translate(index_map, pred.a);
+                let r = self.translate(index_map, pred.b);
+                SubtypePredicate {
+                    a_is_expected: pred.a_is_expected,
+                    a: l,
+                    b: r,
+                }
+            }),
+            PredicateKind::Coerce(pred) => PredicateKind::Coerce({
+                let a = self.translate(index_map, pred.a);
+                let b = self.translate(index_map, pred.b);
+                CoercePredicate { a, b }
+            }),
+            PredicateKind::ConstEvaluatable(uv) => {
+                if let Some((target_def_id, target_substs)) =
+                    self.translate_orig_substs(index_map, uv.def.did, uv.substs(self.tcx))
+                {
+                    // TODO: We could probably use translated version for
+                    // `WithOptConstParam::const_param_did`
+                    let const_param = WithOptConstParam::unknown(target_def_id);
+                    PredicateKind::ConstEvaluatable(Unevaluated::new(const_param, target_substs))
+                } else {
+                    return None;
+                }
+            }
+            PredicateKind::ConstEquate(c1, c2) => PredicateKind::ConstEquate(
+                self.translate(index_map, c1),
+                self.translate(index_map, c2),
+            ),
+            // NOTE: Only used for Chalk trait solver
+            PredicateKind::TypeWellFormedFromEnv(_) => unimplemented!(),
+        };
+
+        Some(ty::Binder::dummy(pred).to_predicate(self.tcx))
     }
 
     /// Translate a slice of predicates in the context of an item.
