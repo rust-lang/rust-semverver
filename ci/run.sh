@@ -28,7 +28,7 @@ esac
 
 # FIXME: semververver step fails with:
 # error: breaking changes in `old::changes::_::<impl serde::ser::Serialize for old::changes::ChangeCategory>`
-#   --> /home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/semverver-0.1.47/src/changes.rs:35:62
+#   --> /home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/semverver-0.1.48/src/changes.rs:35:62
 #    |
 # 35 | #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #    |                                                              ^^^^^^^^^
@@ -36,7 +36,7 @@ esac
 #    = warning: trait impl specialized or removed (breaking)
 #    = note: this error originates in the derive macro `Serialize` (in Nightly builds, run with -Z macro-backtrace for more info)
 #
-# I guess this is related to serde version difference between 0.1.46 and 0.1.47
+# I guess this is related to serde version difference between 0.1.46 and 0.1.48
 # but anyway we cannot address it here (I think), so disable it until the next release.
 
 # install
