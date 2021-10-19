@@ -26,3 +26,8 @@ pub struct Ghi {
 pub struct Hij {
     field: u8,
 }
+
+pub struct Iij {
+    pub field1: u8,
+    pub field2: u8,
+}

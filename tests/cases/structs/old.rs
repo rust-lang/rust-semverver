@@ -24,3 +24,7 @@ pub struct Ghi {
 }
 
 pub struct Hij(u8);
+
+pub struct Iij {
+    field: u16,
+}
