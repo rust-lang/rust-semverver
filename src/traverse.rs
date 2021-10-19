@@ -17,6 +17,7 @@ use crate::{
     typeck::{BoundContext, TypeComparisonContext},
 };
 use log::{debug, info};
+use rustc_const_eval::const_eval::is_const_fn;
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res, Res::Def};
 use rustc_hir::def_id::DefId;
 use rustc_hir::hir_id::HirId;
@@ -362,8 +363,8 @@ fn diff_fn<'tcx>(changes: &mut ChangeSet, tcx: TyCtxt<'tcx>, old: Res, new: Res)
     let old_def_id = old.def_id();
     let new_def_id = new.def_id();
 
-    let old_const = tcx.is_const_fn(old_def_id);
-    let new_const = tcx.is_const_fn(new_def_id);
+    let old_const = is_const_fn(tcx, old_def_id);
+    let new_const = is_const_fn(tcx, new_def_id);
 
     if old_const != new_const {
         changes.add_change(
