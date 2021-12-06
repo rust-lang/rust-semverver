@@ -931,6 +931,7 @@ dependencies = [
  "curl",
  "env_logger",
  "log",
+ "proc-macro2",
  "quickcheck",
  "semver",
  "serde",
