@@ -20,7 +20,7 @@ anyhow = "1.0.52"
 log = "0.4"
 semver = "1.0" # Keep in sync with version pulled by Cargo
 serde = { version = "1.0.132", features = ["derive"] }
-serde_json = "1.0.73"
+serde_json = "1.0.74"
 proc-macro2 = "=1.0.32"
 
 [dev-dependencies]
