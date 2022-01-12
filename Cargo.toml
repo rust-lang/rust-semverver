@@ -14,7 +14,7 @@ exclude = ["/ci/*", "/.github/*", "/doc"]
 [dependencies]
 cargo = "0.58"
 crates-io = "0.33" # Keep in sync with version pulled by Cargo
-curl = "0.4.41"
+curl = "0.4.42"
 env_logger = "0.9"
 anyhow = "1.0.52"
 log = "0.4"
