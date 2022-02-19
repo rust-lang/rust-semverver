@@ -393,6 +393,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                             substs: target_substs,
                         },
                         constness: pred.constness,
+                        polarity: pred.polarity,
                     }
                 } else {
                     return None;
