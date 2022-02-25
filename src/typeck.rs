@@ -18,7 +18,8 @@ use rustc_middle::{
         error::TypeError,
         fold::TypeFoldable,
         subst::{GenericArg, InternalSubsts, SubstsRef},
-        GenericParamDefKind, ParamEnv, Predicate, PredicateKind, TraitRef, Ty, TyCtxt,
+        GenericParamDefKind, ImplPolarity, ParamEnv, Predicate, PredicateKind, TraitRef, Ty,
+        TyCtxt,
     },
 };
 use rustc_trait_selection::traits::FulfillmentContext;
@@ -77,6 +78,7 @@ impl<'a, 'tcx> BoundContext<'a, 'tcx> {
         let predicate = ty::Binder::dummy(PredicateKind::Trait(TraitPredicate {
             trait_ref: checked_trait_ref,
             constness: BoundConstness::NotConst,
+            polarity: ImplPolarity::Positive,
         }))
         .to_predicate(self.infcx.tcx);
         let obligation = Obligation::new(ObligationCause::dummy(), self.given_param_env, predicate);
