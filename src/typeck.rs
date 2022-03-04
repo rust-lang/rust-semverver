@@ -88,9 +88,10 @@ impl<'a, 'tcx> BoundContext<'a, 'tcx> {
 
     /// Return inference errors, if any.
     pub fn get_errors(&mut self) -> Option<Vec<FulfillmentError<'tcx>>> {
-        if let Err(err) = self.fulfill_cx.select_all_or_error(self.infcx) {
-            debug!("err: {:?}", err);
-            Some(err)
+        let errors = self.fulfill_cx.select_all_or_error(self.infcx);
+        if !errors.is_empty() {
+            debug!("err: {:?}", errors);
+            Some(errors)
         } else {
             None
         }
