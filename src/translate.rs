@@ -166,7 +166,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
         use rustc_middle::ty::TypeAndMut;
         use rustc_middle::ty::{AdtDef, Binder, ExistentialProjection, ExistentialTraitRef};
 
-        orig.fold_with(&mut BottomUpFolder {
+        let Ok(result) = orig.fold_with(&mut BottomUpFolder {
             tcx: self.tcx,
             ty_op: |ty| {
                 match *ty.kind() {
@@ -327,7 +327,8 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
             },
             lt_op: |region| self.translate_region(region),
             ct_op: |konst| konst, // TODO: translate consts
-        })
+        });
+        result
     }
 
     /// Translate a region.
@@ -558,12 +559,12 @@ impl<'a, 'tcx> TypeFolder<'tcx> for InferenceCleanupFolder<'a, 'tcx> {
         self.infcx.tcx
     }
 
-    fn fold_ty(&mut self, ty: Ty<'tcx>) -> Ty<'tcx> {
+    fn fold_ty(&mut self, ty: Ty<'tcx>) -> Result<Ty<'tcx>, Self::Error> {
         use rustc_middle::ty::TyKind;
         use rustc_middle::ty::TypeAndMut;
 
-        let t1 = ty.super_fold_with(self);
-        match *t1.kind() {
+        let t1 = ty.super_fold_with(self)?;
+        Ok(match *t1.kind() {
             TyKind::Ref(region, ty, mutbl) if region.needs_infer() => {
                 let ty_and_mut = TypeAndMut { ty, mutbl };
                 self.infcx
@@ -572,15 +573,15 @@ impl<'a, 'tcx> TypeFolder<'tcx> for InferenceCleanupFolder<'a, 'tcx> {
             }
             TyKind::Infer(_) => self.infcx.tcx.ty_error(),
             _ => t1,
-        }
+        })
     }
 
-    fn fold_region(&mut self, r: Region<'tcx>) -> Region<'tcx> {
-        let r1 = r.super_fold_with(self);
-        if r1.needs_infer() {
+    fn fold_region(&mut self, r: Region<'tcx>) -> Result<Region<'tcx>, Self::Error> {
+        let r1 = r.super_fold_with(self)?;
+        Ok(if r1.needs_infer() {
             self.infcx.tcx.lifetimes.re_erased
         } else {
             r1
-        }
+        })
     }
 }

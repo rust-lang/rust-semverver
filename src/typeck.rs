@@ -254,12 +254,11 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
                 RegionckMode::default(),
             );
 
-            let err = self
+            let Ok(folded) = self
                 .infcx
                 .resolve_vars_if_possible(err)
-                .fold_with(&mut self.folder.clone())
-                .lift_to_tcx(lift_tcx)
-                .unwrap();
+                .fold_with(&mut self.folder.clone());
+            let err = folded.lift_to_tcx(lift_tcx).unwrap();
 
             Some(err)
         } else {
@@ -288,11 +287,11 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
             errors
                 .iter()
                 .map(|err| {
-                    self.infcx
+                    let Ok(folded) = self
+                        .infcx
                         .resolve_vars_if_possible(err.obligation.predicate)
-                        .fold_with(&mut self.folder.clone())
-                        .lift_to_tcx(lift_tcx)
-                        .unwrap()
+                        .fold_with(&mut self.folder.clone());
+                    folded.lift_to_tcx(lift_tcx).unwrap()
                 })
                 .collect()
         })
