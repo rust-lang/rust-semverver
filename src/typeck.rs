@@ -88,9 +88,10 @@ impl<'a, 'tcx> BoundContext<'a, 'tcx> {
 
     /// Return inference errors, if any.
     pub fn get_errors(&mut self) -> Option<Vec<FulfillmentError<'tcx>>> {
-        if let Err(err) = self.fulfill_cx.select_all_or_error(self.infcx) {
-            debug!("err: {:?}", err);
-            Some(err)
+        let errors = self.fulfill_cx.select_all_or_error(self.infcx);
+        if !errors.is_empty() {
+            debug!("err: {:?}", errors);
+            Some(errors)
         } else {
             None
         }
@@ -253,12 +254,11 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
                 RegionckMode::default(),
             );
 
-            let err = self
+            let Ok(folded) = self
                 .infcx
                 .resolve_vars_if_possible(err)
-                .fold_with(&mut self.folder.clone())
-                .lift_to_tcx(lift_tcx)
-                .unwrap();
+                .fold_with(&mut self.folder.clone());
+            let err = folded.lift_to_tcx(lift_tcx).unwrap();
 
             Some(err)
         } else {
@@ -287,11 +287,11 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
             errors
                 .iter()
                 .map(|err| {
-                    self.infcx
+                    let Ok(folded) = self
+                        .infcx
                         .resolve_vars_if_possible(err.obligation.predicate)
-                        .fold_with(&mut self.folder.clone())
-                        .lift_to_tcx(lift_tcx)
-                        .unwrap()
+                        .fold_with(&mut self.folder.clone());
+                    folded.lift_to_tcx(lift_tcx).unwrap()
                 })
                 .collect()
         })

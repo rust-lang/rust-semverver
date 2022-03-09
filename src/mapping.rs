@@ -374,6 +374,7 @@ impl NameMapping {
                 Use |
                 ForeignMod |
                 AnonConst |
+                InlineConst |
                 Field |
                 LifetimeParam |
                 GlobalAsm |

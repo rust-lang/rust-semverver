@@ -1,4 +1,5 @@
 #![feature(rustc_private)]
+#![feature(exhaustive_patterns)]
 #![allow(clippy::similar_names)]
 #![allow(clippy::single_match_else)]
 #![allow(clippy::too_many_lines)]
