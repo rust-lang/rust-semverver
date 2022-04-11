@@ -21,8 +21,8 @@ log = "0.4"
 semver = "1.0" # Keep in sync with version pulled by Cargo
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = "1.0.79"
-quote = "=1.0.10"
-proc-macro2 = "=1.0.32"
+quote = "1.0.10"
+proc-macro2 = "1.0.32"
 
 [dev-dependencies]
 quickcheck = { version = "1.0", default-features = false }
