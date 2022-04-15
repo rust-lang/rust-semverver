@@ -198,12 +198,7 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
                 None
             }
             (&TyKind::RawPtr(a_mt), &TyKind::RawPtr(b_mt)) => {
-                let _ = ty::relate::relate_type_and_mut(
-                    self,
-                    a_mt,
-                    b_mt,
-                    a,
-                )?;
+                let _ = ty::relate::relate_type_and_mut(self, a_mt, b_mt, a)?;
                 None
             }
             (&TyKind::Ref(a_r, a_ty, _), &TyKind::Ref(b_r, b_ty, _)) => {

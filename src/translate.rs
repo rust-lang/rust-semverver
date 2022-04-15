@@ -166,7 +166,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
         use rustc_middle::ty::TypeAndMut;
         use rustc_middle::ty::{AdtDef, Binder, ExistentialProjection, ExistentialTraitRef};
 
-        let result = orig.fold_with(&mut BottomUpFolder {
+        orig.fold_with(&mut BottomUpFolder {
             tcx: self.tcx,
             ty_op: |ty| {
                 match *ty.kind() {
@@ -327,8 +327,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
             },
             lt_op: |region| self.translate_region(region),
             ct_op: |konst| konst, // TODO: translate consts
-        });
-        result
+        })
     }
 
     /// Translate a region.
