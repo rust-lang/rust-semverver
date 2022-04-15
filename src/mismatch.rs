@@ -202,7 +202,7 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
                     self,
                     a_mt,
                     b_mt,
-                    ty::VarianceDiagMutKind::RawPtr,
+                    a,
                 )?;
                 None
             }
