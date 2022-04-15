@@ -504,6 +504,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                 ParamEnv::new(
                     self.tcx.intern_predicates(&target_preds),
                     param_env.reveal(),
+                    param_env.constness(),
                 )
             })
     }
