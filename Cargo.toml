@@ -16,7 +16,7 @@ cargo = "0.61"
 crates-io = "0.34" # Keep in sync with version pulled by Cargo
 curl = "0.4.43"
 env_logger = "0.9"
-anyhow = "1.0.56"
+anyhow = "1.0.57"
 log = "0.4"
 semver = "1.0" # Keep in sync with version pulled by Cargo
 serde = { version = "1.0.136", features = ["derive"] }
