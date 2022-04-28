@@ -966,7 +966,7 @@ dependencies = [
 
 [[package]]
 name = "semverver"
-version = "0.1.48"
+version = "0.1.49"
 dependencies = [
  "anyhow",
  "cargo",
