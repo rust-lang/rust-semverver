@@ -85,7 +85,7 @@ pub fn run_traversal(tcx: TyCtxt, new: DefId) {
 
     // Pull a module from the queue, with its global visibility.
     while let Some((new_def_id, idents, new_vis)) = mod_queue.pop_front() {
-        for item in tcx.item_children(new_def_id).to_vec() {
+        for item in tcx.item_children(new_def_id).iter().copied() {
             let n_vis = get_vis(new_vis, item);
             match item.res {
                 Def(Mod, n_def_id) => {
