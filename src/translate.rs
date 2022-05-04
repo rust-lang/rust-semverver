@@ -451,7 +451,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
             }),
             PredicateKind::ConstEvaluatable(uv) => {
                 if let Some((target_def_id, target_substs)) =
-                    self.translate_orig_substs(index_map, uv.def.did, uv.substs(self.tcx))
+                    self.translate_orig_substs(index_map, uv.def.did, uv.substs)
                 {
                     // TODO: We could probably use translated version for
                     // `WithOptConstParam::const_param_did`
