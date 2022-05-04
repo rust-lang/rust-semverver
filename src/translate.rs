@@ -8,7 +8,7 @@ use rustc_infer::infer::InferCtxt;
 use rustc_middle::ty::{
     fold::{BottomUpFolder, TypeFoldable, TypeFolder},
     subst::{GenericArg, InternalSubsts, SubstsRef},
-    GenericParamDefKind, ParamEnv, Predicate, Region, TraitRef, Ty, TyCtxt, Unevaluated,
+    GenericParamDefKind, ParamEnv, Predicate, Region, Term, TraitRef, Ty, TyCtxt, Unevaluated,
 };
 use std::collections::HashMap;
 
@@ -261,7 +261,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                                                     substs: self
                                                         .tcx
                                                         .intern_substs(&target_substs[1..]),
-                                                    ty,
+                                                    term: Term::Ty(ty),
                                                 })
                                             } else {
                                                 success.set(false);
@@ -420,7 +420,10 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                             substs: target_substs,
                             item_def_id: target_def_id,
                         },
-                        ty: self.translate(index_map, pred.ty),
+                        term: match pred.term {
+                            Term::Ty(ty) => Term::Ty(self.translate(index_map, ty)),
+                            Term::Const(_) => pred.term,
+                        },
                     }
                 } else {
                     return None;
