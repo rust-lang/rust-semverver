@@ -22,6 +22,7 @@ use rustc_hir::def_id::DefId;
 use rustc_hir::hir_id::HirId;
 use rustc_hir::lang_items::LangItem;
 use rustc_infer::infer::TyCtxtInferExt;
+use rustc_metadata::creader::CStore;
 use rustc_middle::{
     metadata::ModChild,
     ty::{
@@ -1149,51 +1150,50 @@ fn diff_trait_impls<'tcx>(
     let structural_peq_def_id = tcx.require_lang_item(LangItem::StructuralPeq, None);
     let structural_trait_def_ids = [structural_peq_def_id, structural_teq_def_id];
 
-    for (old_impl_def_id, _) in tcx
-        .all_trait_implementations(id_mapping.get_old_crate())
-        .iter()
+    let cstore = CStore::from_tcx(tcx);
+    for (old_impl_def_id, _) in
+        cstore.trait_impls_in_crate_untracked(id_mapping.get_old_crate())
     {
-        let old_trait_def_id = tcx.impl_trait_ref(*old_impl_def_id).unwrap().def_id;
+        let old_trait_def_id = tcx.impl_trait_ref(old_impl_def_id).unwrap().def_id; 
 
         if structural_trait_def_ids.contains(&old_trait_def_id) {
             continue;
         }
 
-        if !to_new.can_translate(old_trait_def_id) || !is_impl_trait_public(tcx, *old_impl_def_id) {
+        if !to_new.can_translate(old_trait_def_id) || !is_impl_trait_public(tcx, old_impl_def_id) {
             continue;
         }
 
-        if !match_trait_impl(tcx, &to_new, *old_impl_def_id) {
+        if !match_trait_impl(tcx, &to_new, old_impl_def_id) {
             changes.new_change_impl(
-                *old_impl_def_id,
-                tcx.def_path_str(*old_impl_def_id),
-                tcx.def_span(*old_impl_def_id),
+                old_impl_def_id,
+                tcx.def_path_str(old_impl_def_id),
+                tcx.def_span(old_impl_def_id),
             );
-            changes.add_change(ChangeType::TraitImplTightened, *old_impl_def_id, None);
+            changes.add_change(ChangeType::TraitImplTightened, old_impl_def_id, None);
         }
     }
 
-    for (new_impl_def_id, _) in tcx
-        .all_trait_implementations(id_mapping.get_new_crate())
-        .iter()
+    for (new_impl_def_id, _) in
+        cstore.trait_impls_in_crate_untracked(id_mapping.get_new_crate())
     {
-        let new_trait_def_id = tcx.impl_trait_ref(*new_impl_def_id).unwrap().def_id;
+        let new_trait_def_id = tcx.impl_trait_ref(new_impl_def_id).unwrap().def_id;
 
         if structural_trait_def_ids.contains(&new_trait_def_id) {
             continue;
         }
 
-        if !to_old.can_translate(new_trait_def_id) || !is_impl_trait_public(tcx, *new_impl_def_id) {
+        if !to_old.can_translate(new_trait_def_id) || !is_impl_trait_public(tcx, new_impl_def_id) {
             continue;
         }
 
-        if !match_trait_impl(tcx, &to_old, *new_impl_def_id) {
+        if !match_trait_impl(tcx, &to_old, new_impl_def_id) {
             changes.new_change_impl(
-                *new_impl_def_id,
-                tcx.def_path_str(*new_impl_def_id),
-                tcx.def_span(*new_impl_def_id),
+                new_impl_def_id,
+                tcx.def_path_str(new_impl_def_id),
+                tcx.def_span(new_impl_def_id),
             );
-            changes.add_change(ChangeType::TraitImplLoosened, *new_impl_def_id, None);
+            changes.add_change(ChangeType::TraitImplLoosened, new_impl_def_id, None);
         }
     }
 }

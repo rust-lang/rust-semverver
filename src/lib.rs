@@ -11,6 +11,7 @@
 extern crate rustc_const_eval; // Requires `rustup component add rustc-dev`
 extern crate rustc_hir;
 extern crate rustc_infer;
+extern crate rustc_metadata;
 extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
