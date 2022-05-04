@@ -428,14 +428,14 @@ fn diff_adts(changes: &mut ChangeSet, id_mapping: &mut IdMapping, tcx: TyCtxt, o
     let mut variants = BTreeMap::new();
     let mut fields = BTreeMap::new();
 
-    for variant in &old_def.variants {
+    for variant in old_def.variants() {
         variants
             .entry(variant.ident(tcx).name)
             .or_insert((None, None))
             .0 = Some(variant);
     }
 
-    for variant in &new_def.variants {
+    for variant in new_def.variants() {
         variants
             .entry(variant.ident(tcx).name)
             .or_insert((None, None))
@@ -1106,7 +1106,7 @@ fn diff_inherent_impls<'tcx>(
 fn is_impl_trait_public<'tcx>(tcx: TyCtxt<'tcx>, impl_def_id: DefId) -> bool {
     fn type_visibility(tcx: TyCtxt, ty: Ty) -> Visibility {
         match ty.kind() {
-            TyKind::Adt(def, _) => tcx.visibility(def.did),
+            TyKind::Adt(def, _) => tcx.visibility(def.did()),
 
             TyKind::Array(t, _)
             | TyKind::Slice(t)

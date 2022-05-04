@@ -151,9 +151,9 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
         let matching = match (a.kind(), b.kind()) {
             (&TyKind::Adt(a_def, a_substs), &TyKind::Adt(b_def, b_substs)) => {
                 if self.check_substs(a_substs, b_substs) {
-                    let _ = self.relate_item_substs(a_def.did, a_substs, b_substs)?;
-                    let a_adt = self.tcx.adt_def(a_def.did);
-                    let b_adt = self.tcx.adt_def(b_def.did);
+                    let _ = self.relate_item_substs(a_def.did(), a_substs, b_substs)?;
+                    let a_adt = self.tcx.adt_def(a_def.did());
+                    let b_adt = self.tcx.adt_def(b_def.did());
 
                     let b_fields: HashMap<_, _> = b_adt.all_fields().map(|f| (f.did, f)).collect();
 
@@ -172,19 +172,19 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
                     }
 
                     let a = if a_def.is_struct() {
-                        Res::Def(DefKind::Struct, a_def.did)
+                        Res::Def(DefKind::Struct, a_def.did())
                     } else if a_def.is_union() {
-                        Res::Def(DefKind::Union, a_def.did)
+                        Res::Def(DefKind::Union, a_def.did())
                     } else {
-                        Res::Def(DefKind::Enum, a_def.did)
+                        Res::Def(DefKind::Enum, a_def.did())
                     };
 
                     let b = if b_def.is_struct() {
-                        Res::Def(DefKind::Struct, b_def.did)
+                        Res::Def(DefKind::Struct, b_def.did())
                     } else if b_def.is_union() {
-                        Res::Def(DefKind::Union, b_def.did)
+                        Res::Def(DefKind::Union, b_def.did())
                     } else {
-                        Res::Def(DefKind::Enum, b_def.did)
+                        Res::Def(DefKind::Enum, b_def.did())
                     };
 
                     Some((a, b))

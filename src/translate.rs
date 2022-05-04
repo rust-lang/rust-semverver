@@ -164,18 +164,18 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
         use rustc_middle::ty::ExistentialPredicate::*;
         use rustc_middle::ty::TyKind;
         use rustc_middle::ty::TypeAndMut;
-        use rustc_middle::ty::{AdtDef, Binder, ExistentialProjection, ExistentialTraitRef};
+        use rustc_middle::ty::{Binder, ExistentialProjection, ExistentialTraitRef};
 
         orig.fold_with(&mut BottomUpFolder {
             tcx: self.tcx,
             ty_op: |ty| {
                 match *ty.kind() {
-                    TyKind::Adt(&AdtDef { ref did, .. }, substs)
-                        if self.needs_translation(*did) =>
-                    {
+                    TyKind::Adt(adt_def, substs) if self.needs_translation(adt_def.did()) => {
                         // we fold bottom-up, so the code above is invalid, as it assumes the
                         // substs (that have been folded already) are yet untranslated
-                        if let Some(target_def_id) = (self.translate_orig)(self.id_mapping, *did) {
+                        if let Some(target_def_id) =
+                            (self.translate_orig)(self.id_mapping, adt_def.did())
+                        {
                             let target_adt = self.tcx.adt_def(target_def_id);
                             self.tcx.mk_adt(target_adt, substs)
                         } else {
