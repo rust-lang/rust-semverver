@@ -23,7 +23,7 @@ use rustc_hir::hir_id::HirId;
 use rustc_hir::lang_items::LangItem;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::{
-    hir::exports::Export,
+    metadata::ModChild,
     ty::{
         subst::{InternalSubsts, Subst},
         AssocItem, GenericParamDef, GenericParamDefKind, Generics, TraitRef, Ty, TyCtxt, TyKind,
@@ -67,7 +67,7 @@ pub fn run_analysis(tcx: TyCtxt, old: DefId, new: DefId) -> ChangeSet {
 }
 
 // Get the visibility of the inner item, given the outer item's visibility.
-fn get_vis(outer_vis: Visibility, def: Export) -> Visibility {
+fn get_vis(outer_vis: Visibility, def: ModChild) -> Visibility {
     if outer_vis == Public {
         def.vis
     } else {
@@ -85,7 +85,7 @@ pub fn run_traversal(tcx: TyCtxt, new: DefId) {
 
     // Pull a module from the queue, with its global visibility.
     while let Some((new_def_id, idents, new_vis)) = mod_queue.pop_front() {
-        for item in tcx.item_children(new_def_id).iter().copied() {
+        for item in tcx.module_children(new_def_id).iter().copied() {
             let n_vis = get_vis(new_vis, item);
             match item.res {
                 Def(Mod, n_def_id) => {
@@ -147,8 +147,8 @@ fn diff_structure<'tcx>(
     // Pull a matched module pair from the queue, with the modules' global visibility.
     while let Some((old_def_id, new_def_id, old_vis, new_vis)) = mod_queue.pop_front() {
         children.add(
-            tcx.item_children(old_def_id).to_vec(), // TODO: clean up
-            tcx.item_children(new_def_id).to_vec(),
+            tcx.module_children(old_def_id).to_vec(), // TODO: clean up
+            tcx.module_children(new_def_id).to_vec(),
         );
 
         for items in children.drain() {

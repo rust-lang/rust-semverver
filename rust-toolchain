@@ -1,4 +1,4 @@
 # NOTE: Keep in sync with nightly date on README
 [toolchain]
-channel = "nightly-2021-12-31"
+channel = "nightly-2022-01-10"
 components = ["llvm-tools-preview", "rustc-dev"]
