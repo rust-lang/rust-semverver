@@ -429,22 +429,34 @@ fn diff_adts(changes: &mut ChangeSet, id_mapping: &mut IdMapping, tcx: TyCtxt, o
     let mut fields = BTreeMap::new();
 
     for variant in &old_def.variants {
-        variants.entry(variant.ident.name).or_insert((None, None)).0 = Some(variant);
+        variants
+            .entry(variant.ident(tcx).name)
+            .or_insert((None, None))
+            .0 = Some(variant);
     }
 
     for variant in &new_def.variants {
-        variants.entry(variant.ident.name).or_insert((None, None)).1 = Some(variant);
+        variants
+            .entry(variant.ident(tcx).name)
+            .or_insert((None, None))
+            .1 = Some(variant);
     }
 
     for items in variants.values() {
         match *items {
             (Some(old), Some(new)) => {
                 for field in &old.fields {
-                    fields.entry(field.ident.name).or_insert((None, None)).0 = Some(field);
+                    fields
+                        .entry(field.ident(tcx).name)
+                        .or_insert((None, None))
+                        .0 = Some(field);
                 }
 
                 for field in &new.fields {
-                    fields.entry(field.ident.name).or_insert((None, None)).1 = Some(field);
+                    fields
+                        .entry(field.ident(tcx).name)
+                        .or_insert((None, None))
+                        .1 = Some(field);
                 }
 
                 let mut total_private = true;
