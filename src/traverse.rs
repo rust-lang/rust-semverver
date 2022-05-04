@@ -546,7 +546,7 @@ fn diff_adts(changes: &mut ChangeSet, id_mapping: &mut IdMapping, tcx: TyCtxt, o
             id_mapping.add_inherent_item(
                 old_def_id,
                 item.kind,
-                item.ident.name,
+                item.ident(tcx).name,
                 *impl_def_id,
                 *item_def_id,
             );
@@ -559,7 +559,7 @@ fn diff_adts(changes: &mut ChangeSet, id_mapping: &mut IdMapping, tcx: TyCtxt, o
             id_mapping.add_inherent_item(
                 new_def_id,
                 item.kind,
-                item.ident.name,
+                item.ident(tcx).name,
                 *impl_def_id,
                 *item_def_id,
             );
@@ -622,13 +622,13 @@ fn diff_traits<'tcx>(
 
     for old_def_id in tcx.associated_item_def_ids(old).iter() {
         let item = tcx.associated_item(*old_def_id);
-        items.entry(item.ident.name).or_insert((None, None)).0 = Some(item);
+        items.entry(item.ident(tcx).name).or_insert((None, None)).0 = Some(item);
         // tcx.describe_def(*old_def_id).map(|d| (d, item));
     }
 
     for new_def_id in tcx.associated_item_def_ids(new).iter() {
         let item = tcx.associated_item(*new_def_id);
-        items.entry(item.ident.name).or_insert((None, None)).1 = Some(item);
+        items.entry(item.ident(tcx).name).or_insert((None, None)).1 = Some(item);
         // tcx.describe_def(*new_def_id).map(|d| (d, item));
     }
 
