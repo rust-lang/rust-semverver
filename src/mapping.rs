@@ -382,7 +382,7 @@ impl NameMapping {
                 Closure |
                 Generator => None,
             },
-            PrimTy(_) | SelfTy(_, _) => Some(&mut self.type_map),
+            PrimTy(_) | SelfTy { .. } => Some(&mut self.type_map),
             SelfCtor(_) | Local(_) => Some(&mut self.value_map),
             _ => None,
         };
