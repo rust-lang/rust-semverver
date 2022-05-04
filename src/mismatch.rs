@@ -140,7 +140,7 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
         // could potentially short-circuit somewhere).
         let dummy_type = self.tcx.types.unit;
 
-        if self.current_old_types.contains(a) || self.current_new_types.contains(b) {
+        if self.current_old_types.contains(&a) || self.current_new_types.contains(&b) {
             return Ok(dummy_type);
         }
 
@@ -270,8 +270,8 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
             _ => None,
         };
 
-        self.current_old_types.remove(a);
-        self.current_new_types.remove(b);
+        self.current_old_types.remove(&a);
+        self.current_new_types.remove(&b);
 
         if let Some((old, new)) = matching {
             let old_def_id = old.def_id();
@@ -298,9 +298,9 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
 
     fn consts(
         &mut self,
-        a: &'tcx ty::Const<'tcx>,
-        _: &'tcx ty::Const<'tcx>,
-    ) -> RelateResult<'tcx, &'tcx ty::Const<'tcx>> {
+        a: ty::Const<'tcx>,
+        _: ty::Const<'tcx>,
+    ) -> RelateResult<'tcx, ty::Const<'tcx>> {
         Ok(a) // TODO
     }
 

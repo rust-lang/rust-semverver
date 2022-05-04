@@ -1111,7 +1111,7 @@ fn is_impl_trait_public<'tcx>(tcx: TyCtxt<'tcx>, impl_def_id: DefId) -> bool {
             TyKind::Array(t, _)
             | TyKind::Slice(t)
             | TyKind::RawPtr(TypeAndMut { ty: t, .. })
-            | TyKind::Ref(_, t, _) => type_visibility(tcx, t),
+            | TyKind::Ref(_, t, _) => type_visibility(tcx, *t),
 
             TyKind::Bool
             | TyKind::Char
