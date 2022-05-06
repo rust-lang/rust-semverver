@@ -1163,11 +1163,9 @@ fn diff_trait_impls<'tcx>(
     let structural_trait_def_ids = [structural_peq_def_id, structural_teq_def_id];
 
     let cstore = CStore::from_tcx(tcx);
-    for (old_impl_def_id, _) in
+    for (old_trait_def_id, old_impl_def_id, _) in
         cstore.trait_impls_in_crate_untracked(id_mapping.get_old_crate())
     {
-        let old_trait_def_id = tcx.impl_trait_ref(old_impl_def_id).unwrap().def_id; 
-
         if structural_trait_def_ids.contains(&old_trait_def_id) {
             continue;
         }
@@ -1186,11 +1184,9 @@ fn diff_trait_impls<'tcx>(
         }
     }
 
-    for (new_impl_def_id, _) in
+    for (new_trait_def_id, new_impl_def_id, _) in
         cstore.trait_impls_in_crate_untracked(id_mapping.get_new_crate())
     {
-        let new_trait_def_id = tcx.impl_trait_ref(new_impl_def_id).unwrap().def_id;
-
         if structural_trait_def_ids.contains(&new_trait_def_id) {
             continue;
         }
