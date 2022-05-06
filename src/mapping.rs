@@ -14,10 +14,9 @@ use rustc_middle::{
 };
 use rustc_span::symbol::Symbol;
 use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
-use std::hash::{Hash, Hasher};
 
 /// A description of an item found in an inherent impl.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct InherentEntry {
     /// The parent item's `DefId`.
     pub parent_def_id: DefId,
@@ -27,34 +26,15 @@ pub struct InherentEntry {
     pub name: Symbol,
 }
 
-impl Eq for InherentEntry {}
-
 fn assert_impl_eq<T: Eq>() {}
 
 #[allow(dead_code)]
 fn assert_inherent_entry_members_impl_eq() {
     assert_impl_eq::<DefId>();
 
-    // FIXME derive Eq again once AssocKind impls Eq again.
-    // assert_impl_eq::<AssocKind>();
+    assert_impl_eq::<AssocKind>();
 
     assert_impl_eq::<Symbol>();
-}
-
-#[allow(clippy::derive_hash_xor_eq)]
-impl Hash for InherentEntry {
-    fn hash<H: Hasher>(&self, hasher: &mut H) {
-        self.parent_def_id.hash(hasher);
-
-        // FIXME derive Hash again once AssocKind derives Hash again.
-        match self.kind {
-            AssocKind::Const => 0_u8.hash(hasher),
-            AssocKind::Fn => 1_u8.hash(hasher),
-            AssocKind::Type => 2_u8.hash(hasher),
-        }
-
-        self.name.hash(hasher);
-    }
 }
 
 /// A set of pairs of impl- and item `DefId`s for inherent associated items.
