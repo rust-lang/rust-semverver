@@ -9,7 +9,7 @@ use rustc_hir::{
     HirId,
 };
 use rustc_middle::{
-    hir::exports::Export,
+    metadata::ModChild,
     ty::{AssocKind, GenericParamDef, GenericParamDefKind},
 };
 use rustc_span::symbol::Symbol;
@@ -325,7 +325,7 @@ impl IdMapping {
 }
 
 /// An export that could be missing from one of the crate versions.
-type OptionalExport = Option<Export>;
+type OptionalExport = Option<ModChild>;
 
 /// A mapping from names to pairs of old and new exports.
 ///
@@ -343,7 +343,7 @@ pub struct NameMapping {
 
 impl NameMapping {
     /// Insert a single export in the appropriate map, at the appropriate position.
-    fn insert(&mut self, item: Export, old: bool) {
+    fn insert(&mut self, item: ModChild, old: bool) {
         use rustc_hir::def::DefKind::*;
         use rustc_hir::def::Res::*;
 
@@ -382,7 +382,7 @@ impl NameMapping {
                 Closure |
                 Generator => None,
             },
-            PrimTy(_) | SelfTy(_, _) => Some(&mut self.type_map),
+            PrimTy(_) | SelfTy { .. } => Some(&mut self.type_map),
             SelfCtor(_) | Local(_) => Some(&mut self.value_map),
             _ => None,
         };
@@ -397,7 +397,7 @@ impl NameMapping {
     }
 
     /// Add all items from two vectors of old/new exports.
-    pub fn add(&mut self, old_items: Vec<Export>, new_items: Vec<Export>) {
+    pub fn add(&mut self, old_items: Vec<ModChild>, new_items: Vec<ModChild>) {
         for item in old_items {
             self.insert(item, true);
         }
@@ -408,7 +408,7 @@ impl NameMapping {
     }
 
     /// Drain the item pairs being stored.
-    pub fn drain(&mut self) -> impl Iterator<Item = (Option<Export>, Option<Export>)> + '_ {
+    pub fn drain(&mut self) -> impl Iterator<Item = (Option<ModChild>, Option<ModChild>)> + '_ {
         self.type_map
             .drain()
             .chain(self.value_map.drain())

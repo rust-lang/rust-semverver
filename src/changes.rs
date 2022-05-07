@@ -202,7 +202,9 @@ impl PathChange {
 
         let msg = format!("path changes to `{}`", self.name.0);
         let mut builder = if cat == Breaking {
-            session.struct_span_err(self.def_span, &msg)
+            session
+                .struct_span_err(self.def_span, &msg)
+                .forget_guarantee()
         } else {
             session.struct_span_warn(self.def_span, &msg)
         };
@@ -903,7 +905,9 @@ impl<'tcx> Change<'tcx> {
 
         let msg = format!("{} changes in {}", self.max, self.name);
         let mut builder = if self.max == Breaking {
-            session.struct_span_err(self.new_span, &msg)
+            session
+                .struct_span_err(self.new_span, &msg)
+                .forget_guarantee()
         } else {
             session.struct_span_warn(self.new_span, &msg)
         };

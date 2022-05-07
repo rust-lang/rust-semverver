@@ -22,8 +22,9 @@ use rustc_hir::def_id::DefId;
 use rustc_hir::hir_id::HirId;
 use rustc_hir::lang_items::LangItem;
 use rustc_infer::infer::TyCtxtInferExt;
+use rustc_metadata::creader::CStore;
 use rustc_middle::{
-    hir::exports::Export,
+    metadata::ModChild,
     ty::{
         subst::{InternalSubsts, Subst},
         AssocItem, GenericParamDef, GenericParamDefKind, Generics, TraitRef, Ty, TyCtxt, TyKind,
@@ -67,7 +68,7 @@ pub fn run_analysis(tcx: TyCtxt, old: DefId, new: DefId) -> ChangeSet {
 }
 
 // Get the visibility of the inner item, given the outer item's visibility.
-fn get_vis(outer_vis: Visibility, def: Export) -> Visibility {
+fn get_vis(outer_vis: Visibility, def: ModChild) -> Visibility {
     if outer_vis == Public {
         def.vis
     } else {
@@ -85,7 +86,7 @@ pub fn run_traversal(tcx: TyCtxt, new: DefId) {
 
     // Pull a module from the queue, with its global visibility.
     while let Some((new_def_id, idents, new_vis)) = mod_queue.pop_front() {
-        for item in tcx.item_children(new_def_id).iter().copied() {
+        for item in tcx.module_children(new_def_id).iter().copied() {
             let n_vis = get_vis(new_vis, item);
             match item.res {
                 Def(Mod, n_def_id) => {
@@ -147,8 +148,8 @@ fn diff_structure<'tcx>(
     // Pull a matched module pair from the queue, with the modules' global visibility.
     while let Some((old_def_id, new_def_id, old_vis, new_vis)) = mod_queue.pop_front() {
         children.add(
-            tcx.item_children(old_def_id).to_vec(), // TODO: clean up
-            tcx.item_children(new_def_id).to_vec(),
+            tcx.module_children(old_def_id).to_vec(), // TODO: clean up
+            tcx.module_children(new_def_id).to_vec(),
         );
 
         for items in children.drain() {
@@ -427,23 +428,35 @@ fn diff_adts(changes: &mut ChangeSet, id_mapping: &mut IdMapping, tcx: TyCtxt, o
     let mut variants = BTreeMap::new();
     let mut fields = BTreeMap::new();
 
-    for variant in &old_def.variants {
-        variants.entry(variant.ident.name).or_insert((None, None)).0 = Some(variant);
+    for variant in old_def.variants() {
+        variants
+            .entry(variant.ident(tcx).name)
+            .or_insert((None, None))
+            .0 = Some(variant);
     }
 
-    for variant in &new_def.variants {
-        variants.entry(variant.ident.name).or_insert((None, None)).1 = Some(variant);
+    for variant in new_def.variants() {
+        variants
+            .entry(variant.ident(tcx).name)
+            .or_insert((None, None))
+            .1 = Some(variant);
     }
 
     for items in variants.values() {
         match *items {
             (Some(old), Some(new)) => {
                 for field in &old.fields {
-                    fields.entry(field.ident.name).or_insert((None, None)).0 = Some(field);
+                    fields
+                        .entry(field.ident(tcx).name)
+                        .or_insert((None, None))
+                        .0 = Some(field);
                 }
 
                 for field in &new.fields {
-                    fields.entry(field.ident.name).or_insert((None, None)).1 = Some(field);
+                    fields
+                        .entry(field.ident(tcx).name)
+                        .or_insert((None, None))
+                        .1 = Some(field);
                 }
 
                 let mut total_private = true;
@@ -533,7 +546,7 @@ fn diff_adts(changes: &mut ChangeSet, id_mapping: &mut IdMapping, tcx: TyCtxt, o
             id_mapping.add_inherent_item(
                 old_def_id,
                 item.kind,
-                item.ident.name,
+                item.ident(tcx).name,
                 *impl_def_id,
                 *item_def_id,
             );
@@ -546,7 +559,7 @@ fn diff_adts(changes: &mut ChangeSet, id_mapping: &mut IdMapping, tcx: TyCtxt, o
             id_mapping.add_inherent_item(
                 new_def_id,
                 item.kind,
-                item.ident.name,
+                item.ident(tcx).name,
                 *impl_def_id,
                 *item_def_id,
             );
@@ -609,13 +622,13 @@ fn diff_traits<'tcx>(
 
     for old_def_id in tcx.associated_item_def_ids(old).iter() {
         let item = tcx.associated_item(*old_def_id);
-        items.entry(item.ident.name).or_insert((None, None)).0 = Some(item);
+        items.entry(item.ident(tcx).name).or_insert((None, None)).0 = Some(item);
         // tcx.describe_def(*old_def_id).map(|d| (d, item));
     }
 
     for new_def_id in tcx.associated_item_def_ids(new).iter() {
         let item = tcx.associated_item(*new_def_id);
-        items.entry(item.ident.name).or_insert((None, None)).1 = Some(item);
+        items.entry(item.ident(tcx).name).or_insert((None, None)).1 = Some(item);
         // tcx.describe_def(*new_def_id).map(|d| (d, item));
     }
 
@@ -1093,12 +1106,12 @@ fn diff_inherent_impls<'tcx>(
 fn is_impl_trait_public<'tcx>(tcx: TyCtxt<'tcx>, impl_def_id: DefId) -> bool {
     fn type_visibility(tcx: TyCtxt, ty: Ty) -> Visibility {
         match ty.kind() {
-            TyKind::Adt(def, _) => tcx.visibility(def.did),
+            TyKind::Adt(def, _) => tcx.visibility(def.did()),
 
             TyKind::Array(t, _)
             | TyKind::Slice(t)
             | TyKind::RawPtr(TypeAndMut { ty: t, .. })
-            | TyKind::Ref(_, t, _) => type_visibility(tcx, t),
+            | TyKind::Ref(_, t, _) => type_visibility(tcx, *t),
 
             TyKind::Bool
             | TyKind::Char
@@ -1149,51 +1162,46 @@ fn diff_trait_impls<'tcx>(
     let structural_peq_def_id = tcx.require_lang_item(LangItem::StructuralPeq, None);
     let structural_trait_def_ids = [structural_peq_def_id, structural_teq_def_id];
 
-    for (old_impl_def_id, _) in tcx
-        .all_trait_implementations(id_mapping.get_old_crate())
-        .iter()
+    let cstore = CStore::from_tcx(tcx);
+    for (old_trait_def_id, old_impl_def_id, _) in
+        cstore.trait_impls_in_crate_untracked(id_mapping.get_old_crate())
     {
-        let old_trait_def_id = tcx.impl_trait_ref(*old_impl_def_id).unwrap().def_id;
-
         if structural_trait_def_ids.contains(&old_trait_def_id) {
             continue;
         }
 
-        if !to_new.can_translate(old_trait_def_id) || !is_impl_trait_public(tcx, *old_impl_def_id) {
+        if !to_new.can_translate(old_trait_def_id) || !is_impl_trait_public(tcx, old_impl_def_id) {
             continue;
         }
 
-        if !match_trait_impl(tcx, &to_new, *old_impl_def_id) {
+        if !match_trait_impl(tcx, &to_new, old_impl_def_id) {
             changes.new_change_impl(
-                *old_impl_def_id,
-                tcx.def_path_str(*old_impl_def_id),
-                tcx.def_span(*old_impl_def_id),
+                old_impl_def_id,
+                tcx.def_path_str(old_impl_def_id),
+                tcx.def_span(old_impl_def_id),
             );
-            changes.add_change(ChangeType::TraitImplTightened, *old_impl_def_id, None);
+            changes.add_change(ChangeType::TraitImplTightened, old_impl_def_id, None);
         }
     }
 
-    for (new_impl_def_id, _) in tcx
-        .all_trait_implementations(id_mapping.get_new_crate())
-        .iter()
+    for (new_trait_def_id, new_impl_def_id, _) in
+        cstore.trait_impls_in_crate_untracked(id_mapping.get_new_crate())
     {
-        let new_trait_def_id = tcx.impl_trait_ref(*new_impl_def_id).unwrap().def_id;
-
         if structural_trait_def_ids.contains(&new_trait_def_id) {
             continue;
         }
 
-        if !to_old.can_translate(new_trait_def_id) || !is_impl_trait_public(tcx, *new_impl_def_id) {
+        if !to_old.can_translate(new_trait_def_id) || !is_impl_trait_public(tcx, new_impl_def_id) {
             continue;
         }
 
-        if !match_trait_impl(tcx, &to_old, *new_impl_def_id) {
+        if !match_trait_impl(tcx, &to_old, new_impl_def_id) {
             changes.new_change_impl(
-                *new_impl_def_id,
-                tcx.def_path_str(*new_impl_def_id),
-                tcx.def_span(*new_impl_def_id),
+                new_impl_def_id,
+                tcx.def_path_str(new_impl_def_id),
+                tcx.def_span(new_impl_def_id),
             );
-            changes.add_change(ChangeType::TraitImplLoosened, *new_impl_def_id, None);
+            changes.add_change(ChangeType::TraitImplLoosened, new_impl_def_id, None);
         }
     }
 }

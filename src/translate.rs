@@ -8,7 +8,7 @@ use rustc_infer::infer::InferCtxt;
 use rustc_middle::ty::{
     fold::{BottomUpFolder, TypeFoldable, TypeFolder},
     subst::{GenericArg, InternalSubsts, SubstsRef},
-    GenericParamDefKind, ParamEnv, Predicate, Region, TraitRef, Ty, TyCtxt, Unevaluated,
+    GenericParamDefKind, ParamEnv, Predicate, Region, Term, TraitRef, Ty, TyCtxt, Unevaluated,
 };
 use std::collections::HashMap;
 
@@ -164,18 +164,18 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
         use rustc_middle::ty::ExistentialPredicate::*;
         use rustc_middle::ty::TyKind;
         use rustc_middle::ty::TypeAndMut;
-        use rustc_middle::ty::{AdtDef, Binder, ExistentialProjection, ExistentialTraitRef};
+        use rustc_middle::ty::{Binder, ExistentialProjection, ExistentialTraitRef};
 
         orig.fold_with(&mut BottomUpFolder {
             tcx: self.tcx,
             ty_op: |ty| {
                 match *ty.kind() {
-                    TyKind::Adt(&AdtDef { ref did, .. }, substs)
-                        if self.needs_translation(*did) =>
-                    {
+                    TyKind::Adt(adt_def, substs) if self.needs_translation(adt_def.did()) => {
                         // we fold bottom-up, so the code above is invalid, as it assumes the
                         // substs (that have been folded already) are yet untranslated
-                        if let Some(target_def_id) = (self.translate_orig)(self.id_mapping, *did) {
+                        if let Some(target_def_id) =
+                            (self.translate_orig)(self.id_mapping, adt_def.did())
+                        {
                             let target_adt = self.tcx.adt_def(target_def_id);
                             self.tcx.mk_adt(target_adt, substs)
                         } else {
@@ -261,7 +261,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                                                     substs: self
                                                         .tcx
                                                         .intern_substs(&target_substs[1..]),
-                                                    ty,
+                                                    term: Term::Ty(ty),
                                                 })
                                             } else {
                                                 success.set(false);
@@ -420,7 +420,10 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
                             substs: target_substs,
                             item_def_id: target_def_id,
                         },
-                        ty: self.translate(index_map, pred.ty),
+                        term: match pred.term {
+                            Term::Ty(ty) => Term::Ty(self.translate(index_map, ty)),
+                            Term::Const(_) => pred.term,
+                        },
                     }
                 } else {
                     return None;
@@ -451,7 +454,7 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
             }),
             PredicateKind::ConstEvaluatable(uv) => {
                 if let Some((target_def_id, target_substs)) =
-                    self.translate_orig_substs(index_map, uv.def.did, uv.substs(self.tcx))
+                    self.translate_orig_substs(index_map, uv.def.did, uv.substs)
                 {
                     // TODO: We could probably use translated version for
                     // `WithOptConstParam::const_param_did`

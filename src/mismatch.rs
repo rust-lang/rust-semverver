@@ -140,7 +140,7 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
         // could potentially short-circuit somewhere).
         let dummy_type = self.tcx.types.unit;
 
-        if self.current_old_types.contains(a) || self.current_new_types.contains(b) {
+        if self.current_old_types.contains(&a) || self.current_new_types.contains(&b) {
             return Ok(dummy_type);
         }
 
@@ -151,9 +151,9 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
         let matching = match (a.kind(), b.kind()) {
             (&TyKind::Adt(a_def, a_substs), &TyKind::Adt(b_def, b_substs)) => {
                 if self.check_substs(a_substs, b_substs) {
-                    let _ = self.relate_item_substs(a_def.did, a_substs, b_substs)?;
-                    let a_adt = self.tcx.adt_def(a_def.did);
-                    let b_adt = self.tcx.adt_def(b_def.did);
+                    let _ = self.relate_item_substs(a_def.did(), a_substs, b_substs)?;
+                    let a_adt = self.tcx.adt_def(a_def.did());
+                    let b_adt = self.tcx.adt_def(b_def.did());
 
                     let b_fields: HashMap<_, _> = b_adt.all_fields().map(|f| (f.did, f)).collect();
 
@@ -172,19 +172,19 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
                     }
 
                     let a = if a_def.is_struct() {
-                        Res::Def(DefKind::Struct, a_def.did)
+                        Res::Def(DefKind::Struct, a_def.did())
                     } else if a_def.is_union() {
-                        Res::Def(DefKind::Union, a_def.did)
+                        Res::Def(DefKind::Union, a_def.did())
                     } else {
-                        Res::Def(DefKind::Enum, a_def.did)
+                        Res::Def(DefKind::Enum, a_def.did())
                     };
 
                     let b = if b_def.is_struct() {
-                        Res::Def(DefKind::Struct, b_def.did)
+                        Res::Def(DefKind::Struct, b_def.did())
                     } else if b_def.is_union() {
-                        Res::Def(DefKind::Union, b_def.did)
+                        Res::Def(DefKind::Union, b_def.did())
                     } else {
-                        Res::Def(DefKind::Enum, b_def.did)
+                        Res::Def(DefKind::Enum, b_def.did())
                     };
 
                     Some((a, b))
@@ -270,8 +270,8 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
             _ => None,
         };
 
-        self.current_old_types.remove(a);
-        self.current_new_types.remove(b);
+        self.current_old_types.remove(&a);
+        self.current_new_types.remove(&b);
 
         if let Some((old, new)) = matching {
             let old_def_id = old.def_id();
@@ -298,9 +298,9 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
 
     fn consts(
         &mut self,
-        a: &'tcx ty::Const<'tcx>,
-        _: &'tcx ty::Const<'tcx>,
-    ) -> RelateResult<'tcx, &'tcx ty::Const<'tcx>> {
+        a: ty::Const<'tcx>,
+        _: ty::Const<'tcx>,
+    ) -> RelateResult<'tcx, ty::Const<'tcx>> {
         Ok(a) // TODO
     }
 
