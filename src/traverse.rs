@@ -888,7 +888,7 @@ fn diff_types<'tcx>(
 
     match old {
         // type aliases, consts and statics just need their type to be checked
-        Def(TyAlias, _) | Def(Const, _) | Def(Static, _) => {
+        Def(TyAlias | Const | Static, _) => {
             cmp_types(
                 changes,
                 id_mapping,
@@ -900,7 +900,7 @@ fn diff_types<'tcx>(
             );
         }
         // functions and methods require us to compare their signatures, not types
-        Def(Fn, _) | Def(AssocFn, _) => {
+        Def(Fn | AssocFn, _) => {
             let old_fn_sig = tcx.type_of(old_def_id).fn_sig(tcx);
             let new_fn_sig = tcx.type_of(new_def_id).fn_sig(tcx);
 
@@ -915,7 +915,7 @@ fn diff_types<'tcx>(
             );
         }
         // ADTs' types are compared field-wise
-        Def(Struct, _) | Def(Enum, _) | Def(Union, _) => {
+        Def(Struct | Enum | Union, _) => {
             if let Some(children) = id_mapping.children_of(old_def_id) {
                 for (o_def_id, n_def_id) in children {
                     let o_ty = tcx.type_of(o_def_id);
