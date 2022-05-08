@@ -344,7 +344,7 @@ impl NameMapping {
                 Fn |
                 Const |
                 ConstParam |
-                Static |
+                Static(_) |
                 Ctor(_, _) |
                 AssocFn |
                 AssocConst => Some(&mut self.value_map),

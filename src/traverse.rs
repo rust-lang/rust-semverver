@@ -21,6 +21,7 @@ use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res, Res::Def};
 use rustc_hir::def_id::DefId;
 use rustc_hir::hir_id::HirId;
 use rustc_hir::lang_items::LangItem;
+use rustc_hir::Mutability;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_metadata::creader::CStore;
 use rustc_middle::{
@@ -244,12 +245,11 @@ fn diff_structure<'tcx>(
                             | (ForeignTy, ForeignTy)
                             | (ConstParam, ConstParam) => {}
                             // statics are subject to mutability comparison
-                            (Static, Static) => {
-                                let old_mut = tcx.is_mutable_static(o_def_id);
-                                let new_mut = tcx.is_mutable_static(n_def_id);
+                            (Static(old_mut), Static(new_mut)) => {
                                 if old_mut != new_mut {
-                                    let change_type =
-                                        ChangeType::StaticMutabilityChanged { now_mut: new_mut };
+                                    let change_type = ChangeType::StaticMutabilityChanged {
+                                        now_mut: new_mut == Mutability::Mut,
+                                    };
 
                                     changes.add_change(change_type, o_def_id, None);
                                 }
@@ -888,7 +888,7 @@ fn diff_types<'tcx>(
 
     match old {
         // type aliases, consts and statics just need their type to be checked
-        Def(TyAlias | Const | Static, _) => {
+        Def(TyAlias | Const | Static(_), _) => {
             cmp_types(
                 changes,
                 id_mapping,
