@@ -255,7 +255,7 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
             }
             (&TyKind::Opaque(_a_def_id, a_substs), &TyKind::Opaque(_b_def_id, b_substs)) => {
                 if self.check_substs(a_substs, b_substs) {
-                    let _ = ty::relate::relate_substs(self, None, a_substs, b_substs)?;
+                    let _ = ty::relate::relate_substs(self, a_substs, b_substs)?;
                 }
 
                 // TODO: we are talking impl trait here, so we can build a Res for that or the
