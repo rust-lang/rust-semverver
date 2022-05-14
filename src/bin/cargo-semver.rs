@@ -130,8 +130,11 @@ fn run(config: &cargo::Config, matches: &getopts::Matches) -> Result<()> {
         let mut child = Command::new("rust-semver-public");
         child
             .arg("--crate-type=lib")
-            .args(&["--extern", &*format!("new={}", current_rlib.display())])
-            .args(&[format!("-L{}", current_deps_output.display())]);
+            .args(&["--extern", &*format!("new={}", current_rlib.display())]);
+
+        for link_path in current_deps_output {
+            child.args(&[format!("-L{}", link_path.display())]);
+        }
 
         if let Some(target) = matches.opt_str("target") {
             child.args(&["--target", &target]);
@@ -195,13 +198,16 @@ fn run(config: &cargo::Config, matches: &getopts::Matches) -> Result<()> {
         stable.rlib_and_dep_output(config, &name, false, matches)?;
 
     if matches.opt_present("d") {
-        println!(
-            "--extern old={} -L{} --extern new={} -L{}",
-            stable_rlib.display(),
-            stable_deps_output.display(),
-            current_rlib.display(),
-            current_deps_output.display()
-        );
+        print!("--extern old={} ", stable_rlib.display());
+        for link_path in stable_deps_output {
+            print!("-L {} ", link_path.display());
+        }
+        print!("--extern new={}", current_rlib.display());
+        for link_path in current_deps_output {
+            print!("-L {} ", link_path.display());
+        }
+        println!();
+
         return Ok(());
     }
 
@@ -210,10 +216,14 @@ fn run(config: &cargo::Config, matches: &getopts::Matches) -> Result<()> {
     let mut child = Command::new("rust-semverver");
     child
         .arg("--crate-type=lib")
-        .args(&["--extern", &*format!("old={}", stable_rlib.display())])
-        .args(&[format!("-L{}", stable_deps_output.display())])
-        .args(&["--extern", &*format!("new={}", current_rlib.display())])
-        .args(&[format!("-L{}", current_deps_output.display())]);
+        .args(&["--extern", &*format!("old={}", stable_rlib.display())]);
+    for link_path in stable_deps_output {
+        child.args(&[format!("-L{}", link_path.display())]);
+    }
+    child.args(&["--extern", &*format!("new={}", current_rlib.display())]);
+    for link_path in current_deps_output {
+        child.args(&[format!("-L{}", link_path.display())]);
+    }
 
     if let Some(target) = matches.opt_str("target") {
         child.args(&["--target", &target]);
@@ -234,6 +244,8 @@ fn run(config: &cargo::Config, matches: &getopts::Matches) -> Result<()> {
                 "false"
             },
         );
+
+    debug!("rust-semverver invocation: {:?}", child);
 
     let mut child = child
         .spawn()
@@ -474,7 +486,7 @@ impl<'a> WorkInfo<'a> {
         name: &str,
         current: bool,
         matches: &getopts::Matches,
-    ) -> Result<(PathBuf, PathBuf)> {
+    ) -> Result<(PathBuf, Vec<PathBuf>)> {
         // We don't need codegen-ready artifacts (which .rlib files are) so
         // settle for .rmeta files, which result from `cargo check` mode
         let mode = cargo::core::compiler::CompileMode::Check { test: false };
@@ -531,18 +543,29 @@ impl<'a> WorkInfo<'a> {
         let build_plan: BuildPlan = serde_json::from_slice(&plan_output)
             .map_err(|_| anyhow::anyhow!("Can't read build plan"))?;
 
-        // TODO: handle multiple outputs gracefully
-        for i in &build_plan.invocations {
+        debug!("{:?}", &build_plan.invocations);
+        let paths = build_plan.invocations.iter().find_map(|i| {
             if let Some(kind) = i.target_kind.get(0) {
                 if kind.contains("lib") && i.package_name == name {
-                    let deps_output = &compilation.deps_output[&compile_kind];
-
-                    return Ok((i.outputs[0].clone(), deps_output.clone()));
+                    let rlib_path = i.outputs[0].clone();
+                    let mut link_paths = vec![
+                        compilation.deps_output[&compile_kind].clone(),
+                        compilation.deps_output[&cargo::core::compiler::CompileKind::Host].clone(),
+                    ];
+                    // if host and `compile_kind` are the same, only return once
+                    link_paths.dedup();
+                    return Some((rlib_path, link_paths));
                 }
             }
-        }
 
-        Err(anyhow::Error::msg("lost build artifact".to_owned()))
+            None
+        });
+
+        if let Some(paths) = paths {
+            Ok(paths)
+        } else {
+            Err(anyhow::Error::msg("lost build artifact".to_owned()))
+        }
     }
 }
 
