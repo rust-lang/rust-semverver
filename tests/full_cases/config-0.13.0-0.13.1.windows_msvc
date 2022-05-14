@@ -1,0 +1,723 @@
+version bump: 0.13.0 -> (breaking) -> 0.13.1
+error: breaking changes in `build`
+   --> config-0.13.0\src\builder.rs:323:5
+    |
+323 |     pub async fn build(self) -> Result<Config> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = warning: type error: expected opaque type, found a different opaque type (breaking)
+
+error: breaking changes in `build_cloned`
+   --> config-0.13.0\src\builder.rs:335:5
+    |
+335 |     pub async fn build_cloned(&self) -> Result<Config> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = warning: type error: expected opaque type, found a different opaque type (breaking)
+
+error: breaking changes in `get`
+   --> config-0.13.0\src\config.rs:151:5
+    |
+151 |     pub fn get<'de, T: Deserialize<'de>>(&self, key: &str) -> Result<T> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = warning: added bound: `T: serde::de::Deserialize` (breaking)
+    = note: removed bound: `T: serde::de::Deserialize<'de>` (technically breaking)
+
+error: breaking changes in `try_deserialize`
+   --> config-0.13.0\src\config.rs:193:5
+    |
+193 |     pub fn try_deserialize<'de, T: Deserialize<'de>>(self) -> Result<T> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = warning: added bound: `T: serde::de::Deserialize` (breaking)
+    = note: removed bound: `T: serde::de::Deserialize<'de>` (technically breaking)
+
+error: breaking changes in `try_from`
+   --> config-0.13.0\src\config.rs:198:5
+    |
+198 |     pub fn try_from<T: Serialize>(from: &T) -> Result<Self> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = warning: added bound: `T: serde::ser::Serialize` (breaking)
+    = note: removed bound: `T: serde::ser::Serialize` (technically breaking)
+
+error: breaking changes in `deserialize`
+   --> config-0.13.0\src\config.rs:205:5
+    |
+205 |     pub fn deserialize<'de, T: Deserialize<'de>>(self) -> Result<T> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = warning: added bound: `T: serde::de::Deserialize` (breaking)
+    = note: removed bound: `T: serde::de::Deserialize<'de>` (technically breaking)
+
+error: breaking changes in `old::de::<impl serde::de::Deserializer<'de> for old::Value>`
+   --> config-0.13.0\src\de.rs:11:1
+    |
+11  | / impl<'de> de::Deserializer<'de> for Value {
+12  | |     type Error = ConfigError;
+13  | |
+14  | |     #[inline]
+...   |
+145 | |     }
+146 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `old::de::<impl serde::de::Deserializer<'de> for old::Config>`
+   --> config-0.13.0\src\de.rs:340:1
+    |
+340 | / impl<'de> de::Deserializer<'de> for Config {
+341 | |     type Error = ConfigError;
+342 | |
+343 | |     #[inline]
+...   |
+467 | |     }
+468 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `ConfigError`
+  --> config-0.13.1\src\error.rs:41:1
+   |
+41 | / pub enum ConfigError {
+42 | |     /// Configuration is frozen and no further mutations can be made.
+43 | |     Frozen,
+44 | |
+...  |
+84 | |     Foreign(Box<dyn Error + Send + Sync>),
+85 | | }
+   | |_^
+   |
+   = warning: type error: expected enum `nom::error::ErrorKind`, found a different enum `nom::error::ErrorKind` (breaking)
+
+error: breaking changes in `<old::ConfigError as serde::de::Error>`
+   --> config-0.13.0\src\error.rs:234:1
+    |
+234 | / impl de::Error for ConfigError {
+235 | |     fn custom<T: fmt::Display>(msg: T) -> Self {
+236 | |         Self::Message(msg.to_string())
+237 | |     }
+238 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<old::ConfigError as serde::ser::Error>`
+   --> config-0.13.0\src\error.rs:240:1
+    |
+240 | / impl ser::Error for ConfigError {
+241 | |     fn custom<T: fmt::Display>(msg: T) -> Self {
+242 | |         Self::Message(msg.to_string())
+243 | |     }
+244 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `old::file::format::json5::_::<impl serde::de::Deserialize<'de> for old::file::format::json5::Val>`
+ --> config-0.13.0\src\file\format\json5.rs:7:10
+  |
+7 | #[derive(serde::Deserialize, Debug)]
+  |          ^^^^^^^^^^^^^^^^^^
+  |
+  = warning: trait impl specialized or removed (breaking)
+  = note: this error originates in the derive macro `serde::Deserialize` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: breaking changes in `<&'a mut old::ser::ConfigSerializer as serde::ser::Serializer>`
+   --> config-0.13.0\src\ser.rs:85:1
+    |
+85  | / impl<'a> ser::Serializer for &'a mut ConfigSerializer {
+86  | |     type Ok = ();
+87  | |     type Error = ConfigError;
+88  | |     type SerializeSeq = Self;
+...   |
+260 | |     }
+261 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<&'a mut old::ser::ConfigSerializer as serde::ser::SerializeSeq>`
+   --> config-0.13.0\src\ser.rs:263:1
+    |
+263 | / impl<'a> ser::SerializeSeq for &'a mut ConfigSerializer {
+264 | |     type Ok = ();
+265 | |     type Error = ConfigError;
+266 | |
+...   |
+278 | |     }
+279 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<&'a mut old::ser::ConfigSerializer as serde::ser::SerializeTuple>`
+   --> config-0.13.0\src\ser.rs:281:1
+    |
+281 | / impl<'a> ser::SerializeTuple for &'a mut ConfigSerializer {
+282 | |     type Ok = ();
+283 | |     type Error = ConfigError;
+284 | |
+...   |
+296 | |     }
+297 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<&'a mut old::ser::ConfigSerializer as serde::ser::SerializeTupleStruct>`
+   --> config-0.13.0\src\ser.rs:299:1
+    |
+299 | / impl<'a> ser::SerializeTupleStruct for &'a mut ConfigSerializer {
+300 | |     type Ok = ();
+301 | |     type Error = ConfigError;
+302 | |
+...   |
+314 | |     }
+315 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<&'a mut old::ser::ConfigSerializer as serde::ser::SerializeTupleVariant>`
+   --> config-0.13.0\src\ser.rs:317:1
+    |
+317 | / impl<'a> ser::SerializeTupleVariant for &'a mut ConfigSerializer {
+318 | |     type Ok = ();
+319 | |     type Error = ConfigError;
+320 | |
+...   |
+333 | |     }
+334 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<&'a mut old::ser::ConfigSerializer as serde::ser::SerializeMap>`
+   --> config-0.13.0\src\ser.rs:336:1
+    |
+336 | / impl<'a> ser::SerializeMap for &'a mut ConfigSerializer {
+337 | |     type Ok = ();
+338 | |     type Error = ConfigError;
+339 | |
+...   |
+361 | |     }
+362 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<&'a mut old::ser::ConfigSerializer as serde::ser::SerializeStruct>`
+   --> config-0.13.0\src\ser.rs:364:1
+    |
+364 | / impl<'a> ser::SerializeStruct for &'a mut ConfigSerializer {
+365 | |     type Ok = ();
+366 | |     type Error = ConfigError;
+367 | |
+...   |
+380 | |     }
+381 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<&'a mut old::ser::ConfigSerializer as serde::ser::SerializeStructVariant>`
+   --> config-0.13.0\src\ser.rs:383:1
+    |
+383 | / impl<'a> ser::SerializeStructVariant for &'a mut ConfigSerializer {
+384 | |     type Ok = ();
+385 | |     type Error = ConfigError;
+386 | |
+...   |
+400 | |     }
+401 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<old::ser::StringKeySerializer as serde::ser::Serializer>`
+   --> config-0.13.0\src\ser.rs:405:1
+    |
+405 | / impl ser::Serializer for StringKeySerializer {
+406 | |     type Ok = String;
+407 | |     type Error = ConfigError;
+408 | |     type SerializeSeq = Self;
+...   |
+576 | |     }
+577 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<old::ser::StringKeySerializer as serde::ser::SerializeSeq>`
+   --> config-0.13.0\src\ser.rs:579:1
+    |
+579 | / impl ser::SerializeSeq for StringKeySerializer {
+580 | |     type Ok = String;
+581 | |     type Error = ConfigError;
+582 | |
+...   |
+592 | |     }
+593 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<old::ser::StringKeySerializer as serde::ser::SerializeTuple>`
+   --> config-0.13.0\src\ser.rs:595:1
+    |
+595 | / impl ser::SerializeTuple for StringKeySerializer {
+596 | |     type Ok = String;
+597 | |     type Error = ConfigError;
+598 | |
+...   |
+608 | |     }
+609 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<old::ser::StringKeySerializer as serde::ser::SerializeTupleStruct>`
+   --> config-0.13.0\src\ser.rs:611:1
+    |
+611 | / impl ser::SerializeTupleStruct for StringKeySerializer {
+612 | |     type Ok = String;
+613 | |     type Error = ConfigError;
+614 | |
+...   |
+624 | |     }
+625 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<old::ser::StringKeySerializer as serde::ser::SerializeTupleVariant>`
+   --> config-0.13.0\src\ser.rs:627:1
+    |
+627 | / impl ser::SerializeTupleVariant for StringKeySerializer {
+628 | |     type Ok = String;
+629 | |     type Error = ConfigError;
+630 | |
+...   |
+640 | |     }
+641 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<old::ser::StringKeySerializer as serde::ser::SerializeMap>`
+   --> config-0.13.0\src\ser.rs:643:1
+    |
+643 | / impl ser::SerializeMap for StringKeySerializer {
+644 | |     type Ok = String;
+645 | |     type Error = ConfigError;
+646 | |
+...   |
+663 | |     }
+664 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<old::ser::StringKeySerializer as serde::ser::SerializeStruct>`
+   --> config-0.13.0\src\ser.rs:666:1
+    |
+666 | / impl ser::SerializeStruct for StringKeySerializer {
+667 | |     type Ok = String;
+668 | |     type Error = ConfigError;
+669 | |
+...   |
+679 | |     }
+680 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `<old::ser::StringKeySerializer as serde::ser::SerializeStructVariant>`
+   --> config-0.13.0\src\ser.rs:682:1
+    |
+682 | / impl ser::SerializeStructVariant for StringKeySerializer {
+683 | |     type Ok = String;
+684 | |     type Error = ConfigError;
+685 | |
+...   |
+695 | |     }
+696 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+error: breaking changes in `collect`
+  --> config-0.13.1\src\source.rs:59:5
+   |
+59 |     async fn collect(&self) -> Result<Map<String, Value>>;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: type error: expected trait object `dyn std::future::Future`, found enum `std::result::Result` (breaking)
+
+error: breaking changes in `collect_to`
+  --> config-0.13.1\src\source.rs:62:5
+   |
+62 |     async fn collect_to(&self, cache: &mut Value) -> Result<()> {
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: type error: expected trait object `dyn std::future::Future`, found enum `std::result::Result` (breaking)
+
+error: breaking changes in `try_deserialize`
+   --> config-0.13.0\src\value.rs:214:5
+    |
+214 |     pub fn try_deserialize<'de, T: Deserialize<'de>>(self) -> Result<T> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = warning: added bound: `T: serde::de::Deserialize` (breaking)
+    = note: removed bound: `T: serde::de::Deserialize<'de>` (technically breaking)
+
+error: breaking changes in `<old::Value as serde::de::Deserialize<'de>>`
+   --> config-0.13.0\src\value.rs:679:1
+    |
+679 | / impl<'de> Deserialize<'de> for Value {
+680 | |     #[inline]
+681 | |     fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+682 | |     where
+...   |
+816 | |     }
+817 | | }
+    | |_^
+    |
+    = warning: trait impl specialized or removed (breaking)
+
+warning: technically breaking changes in `new::de::<impl serde::de::Deserializer<'de> for new::Value>`
+   --> config-0.13.1\src\de.rs:11:1
+    |
+11  | / impl<'de> de::Deserializer<'de> for Value {
+12  | |     type Error = ConfigError;
+13  | |
+14  | |     #[inline]
+...   |
+145 | |     }
+146 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `new::de::<impl serde::de::Deserializer<'de> for new::Config>`
+   --> config-0.13.1\src\de.rs:340:1
+    |
+340 | / impl<'de> de::Deserializer<'de> for Config {
+341 | |     type Error = ConfigError;
+342 | |
+343 | |     #[inline]
+...   |
+467 | |     }
+468 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<new::ConfigError as serde::de::Error>`
+   --> config-0.13.1\src\error.rs:234:1
+    |
+234 | / impl de::Error for ConfigError {
+235 | |     fn custom<T: fmt::Display>(msg: T) -> Self {
+236 | |         Self::Message(msg.to_string())
+237 | |     }
+238 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<new::ConfigError as serde::ser::Error>`
+   --> config-0.13.1\src\error.rs:240:1
+    |
+240 | / impl ser::Error for ConfigError {
+241 | |     fn custom<T: fmt::Display>(msg: T) -> Self {
+242 | |         Self::Message(msg.to_string())
+243 | |     }
+244 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `new::file::format::json5::_::<impl serde::de::Deserialize<'de> for new::file::format::json5::Val>`
+ --> config-0.13.1\src\file\format\json5.rs:7:10
+  |
+7 | #[derive(serde::Deserialize, Debug)]
+  |          ^^^^^^^^^^^^^^^^^^
+  |
+  = note: trait impl generalized or newly added (technically breaking)
+  = note: this warning originates in the derive macro `serde::Deserialize` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: technically breaking changes in `<&'a mut new::ser::ConfigSerializer as serde::ser::Serializer>`
+   --> config-0.13.1\src\ser.rs:85:1
+    |
+85  | / impl<'a> ser::Serializer for &'a mut ConfigSerializer {
+86  | |     type Ok = ();
+87  | |     type Error = ConfigError;
+88  | |     type SerializeSeq = Self;
+...   |
+260 | |     }
+261 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<&'a mut new::ser::ConfigSerializer as serde::ser::SerializeSeq>`
+   --> config-0.13.1\src\ser.rs:263:1
+    |
+263 | / impl<'a> ser::SerializeSeq for &'a mut ConfigSerializer {
+264 | |     type Ok = ();
+265 | |     type Error = ConfigError;
+266 | |
+...   |
+278 | |     }
+279 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<&'a mut new::ser::ConfigSerializer as serde::ser::SerializeTuple>`
+   --> config-0.13.1\src\ser.rs:281:1
+    |
+281 | / impl<'a> ser::SerializeTuple for &'a mut ConfigSerializer {
+282 | |     type Ok = ();
+283 | |     type Error = ConfigError;
+284 | |
+...   |
+296 | |     }
+297 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<&'a mut new::ser::ConfigSerializer as serde::ser::SerializeTupleStruct>`
+   --> config-0.13.1\src\ser.rs:299:1
+    |
+299 | / impl<'a> ser::SerializeTupleStruct for &'a mut ConfigSerializer {
+300 | |     type Ok = ();
+301 | |     type Error = ConfigError;
+302 | |
+...   |
+314 | |     }
+315 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<&'a mut new::ser::ConfigSerializer as serde::ser::SerializeTupleVariant>`
+   --> config-0.13.1\src\ser.rs:317:1
+    |
+317 | / impl<'a> ser::SerializeTupleVariant for &'a mut ConfigSerializer {
+318 | |     type Ok = ();
+319 | |     type Error = ConfigError;
+320 | |
+...   |
+333 | |     }
+334 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<&'a mut new::ser::ConfigSerializer as serde::ser::SerializeMap>`
+   --> config-0.13.1\src\ser.rs:336:1
+    |
+336 | / impl<'a> ser::SerializeMap for &'a mut ConfigSerializer {
+337 | |     type Ok = ();
+338 | |     type Error = ConfigError;
+339 | |
+...   |
+361 | |     }
+362 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<&'a mut new::ser::ConfigSerializer as serde::ser::SerializeStruct>`
+   --> config-0.13.1\src\ser.rs:364:1
+    |
+364 | / impl<'a> ser::SerializeStruct for &'a mut ConfigSerializer {
+365 | |     type Ok = ();
+366 | |     type Error = ConfigError;
+367 | |
+...   |
+380 | |     }
+381 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<&'a mut new::ser::ConfigSerializer as serde::ser::SerializeStructVariant>`
+   --> config-0.13.1\src\ser.rs:383:1
+    |
+383 | / impl<'a> ser::SerializeStructVariant for &'a mut ConfigSerializer {
+384 | |     type Ok = ();
+385 | |     type Error = ConfigError;
+386 | |
+...   |
+400 | |     }
+401 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<new::ser::StringKeySerializer as serde::ser::Serializer>`
+   --> config-0.13.1\src\ser.rs:405:1
+    |
+405 | / impl ser::Serializer for StringKeySerializer {
+406 | |     type Ok = String;
+407 | |     type Error = ConfigError;
+408 | |     type SerializeSeq = Self;
+...   |
+576 | |     }
+577 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<new::ser::StringKeySerializer as serde::ser::SerializeSeq>`
+   --> config-0.13.1\src\ser.rs:579:1
+    |
+579 | / impl ser::SerializeSeq for StringKeySerializer {
+580 | |     type Ok = String;
+581 | |     type Error = ConfigError;
+582 | |
+...   |
+592 | |     }
+593 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<new::ser::StringKeySerializer as serde::ser::SerializeTuple>`
+   --> config-0.13.1\src\ser.rs:595:1
+    |
+595 | / impl ser::SerializeTuple for StringKeySerializer {
+596 | |     type Ok = String;
+597 | |     type Error = ConfigError;
+598 | |
+...   |
+608 | |     }
+609 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<new::ser::StringKeySerializer as serde::ser::SerializeTupleStruct>`
+   --> config-0.13.1\src\ser.rs:611:1
+    |
+611 | / impl ser::SerializeTupleStruct for StringKeySerializer {
+612 | |     type Ok = String;
+613 | |     type Error = ConfigError;
+614 | |
+...   |
+624 | |     }
+625 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<new::ser::StringKeySerializer as serde::ser::SerializeTupleVariant>`
+   --> config-0.13.1\src\ser.rs:627:1
+    |
+627 | / impl ser::SerializeTupleVariant for StringKeySerializer {
+628 | |     type Ok = String;
+629 | |     type Error = ConfigError;
+630 | |
+...   |
+640 | |     }
+641 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<new::ser::StringKeySerializer as serde::ser::SerializeMap>`
+   --> config-0.13.1\src\ser.rs:643:1
+    |
+643 | / impl ser::SerializeMap for StringKeySerializer {
+644 | |     type Ok = String;
+645 | |     type Error = ConfigError;
+646 | |
+...   |
+663 | |     }
+664 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<new::ser::StringKeySerializer as serde::ser::SerializeStruct>`
+   --> config-0.13.1\src\ser.rs:666:1
+    |
+666 | / impl ser::SerializeStruct for StringKeySerializer {
+667 | |     type Ok = String;
+668 | |     type Error = ConfigError;
+669 | |
+...   |
+679 | |     }
+680 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<new::ser::StringKeySerializer as serde::ser::SerializeStructVariant>`
+   --> config-0.13.1\src\ser.rs:682:1
+    |
+682 | / impl ser::SerializeStructVariant for StringKeySerializer {
+683 | |     type Ok = String;
+684 | |     type Error = ConfigError;
+685 | |
+...   |
+695 | |     }
+696 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+warning: technically breaking changes in `<new::Value as serde::de::Deserialize<'de>>`
+   --> config-0.13.1\src\value.rs:679:1
+    |
+679 | / impl<'de> Deserialize<'de> for Value {
+680 | |     #[inline]
+681 | |     fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+682 | |     where
+...   |
+816 | |     }
+817 | | }
+    | |_^
+    |
+    = note: trait impl generalized or newly added (technically breaking)
+
+error: breaking changes in `<old::file::format::ALL_EXTENSIONS as lazy_static::LazyStatic>`
+  --> config-0.13.0\src\file\format\mod.rs:60:1
+   |
+60 | / lazy_static! {
+61 | |     #[doc(hidden)]
+62 | |     // #[allow(unused_mut)] ?
+63 | |     pub static ref ALL_EXTENSIONS: HashMap<FileFormat, Vec<&'static str>> = {
+...  |
+85 | |     };
+86 | | }
+   | |_^
+   |
+   = warning: trait impl specialized or removed (breaking)
+   = note: this error originates in the macro `__lazy_static_internal` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: technically breaking changes in `<new::file::format::ALL_EXTENSIONS as lazy_static::LazyStatic>`
+  --> config-0.13.1\src\file\format\mod.rs:60:1
+   |
+60 | / lazy_static! {
+61 | |     #[doc(hidden)]
+62 | |     // #[allow(unused_mut)] ?
+63 | |     pub static ref ALL_EXTENSIONS: HashMap<FileFormat, Vec<&'static str>> = {
+...  |
+85 | |     };
+86 | | }
+   | |_^
+   |
+   = note: trait impl generalized or newly added (technically breaking)
+   = note: this warning originates in the macro `__lazy_static_internal` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: aborting due to 33 previous errors; 23 warnings emitted
+
+error: rustc-semverver errored
