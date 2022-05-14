@@ -94,6 +94,8 @@ mod full {
                 .expect("could not read line from rust-semverver output")
                 .trim_end();
 
+            let has_expected_line = stdout.lines().any(|l| l.starts_with("version bump"));
+
             stdout
                 .lines()
                 .chain(stderr.lines())
@@ -101,7 +103,9 @@ mod full {
                 .skip_while(|line|
                     // skip everything before the first important bit of info
                     !line.starts_with("version bump") &&
-                        // ...unless debugging is enabled
+                        // ...if we know it's in there at all
+                        has_expected_line &&
+                        // ...unless debugging is enabled, then always show
                         !log_enabled!(Level::Debug))
                 .map(|line| {
                     // sanitize paths for reproducibility
