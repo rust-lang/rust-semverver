@@ -736,8 +736,17 @@ fn diff_generics(
     let old_count = old_gen.own_counts();
     let new_count = new_gen.own_counts();
 
+    // NEEDSWORK: proper detection of what's going on here..
+    let was_async_trait_transformed = old_count.lifetimes > 0
+        && old_gen.params[old_count.lifetimes - 1].name.as_str() == "'async_trait";
+
     let self_add = if old_gen.has_self && new_gen.has_self {
-        1
+        if was_async_trait_transformed {
+            // async_trait transformation undoes the self lifetime?
+            0
+        } else {
+            1
+        }
     } else if !old_gen.has_self && !new_gen.has_self {
         0
     } else {

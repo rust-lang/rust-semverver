@@ -173,6 +173,8 @@ mod full {
     full_test!(libc0, "libc", "0.2.28", "0.2.31", cfg!(windows));
     full_test!(libc1, "libc", "0.2.47", "0.2.48", true);
     full_test!(rmpv, "rmpv", "0.4.0", "0.4.1", false);
+    // NOTE: this one is a regression test for the async-trait workaround (#295) mostly
+    full_test!(async_trait, "config", "0.13.0", "0.13.1", false);
     // full_test!(mozjs, "mozjs", "0.2.0", "0.3.0");
     // full_test!(rand, "rand", "0.3.10", "0.3.16");
     // full_test!(serde_pre, "serde", "0.7.0", "1.0.0");
