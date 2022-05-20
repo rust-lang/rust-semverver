@@ -28,8 +28,8 @@ use rustc_middle::{
     metadata::ModChild,
     ty::{
         subst::{InternalSubsts, Subst},
-        AssocItem, GenericParamDef, GenericParamDefKind, Generics, TraitRef, Ty, TyCtxt, TyKind,
-        TypeAndMut, Visibility,
+        AssocItem, EarlyBinder, GenericParamDef, GenericParamDefKind, Generics, TraitRef, Ty,
+        TyCtxt, TyKind, TypeAndMut, Visibility,
         Visibility::Public,
     },
 };
@@ -970,12 +970,10 @@ fn cmp_types<'tcx>(
         } else {
             compcx.compute_target_default_substs(target_def_id)
         };
-        let target = target.subst(infcx.tcx, target_substs);
+        let target = EarlyBinder(target).subst(infcx.tcx, target_substs);
 
-        let target_param_env = infcx
-            .tcx
-            .param_env(target_def_id)
-            .subst(infcx.tcx, target_substs);
+        let target_param_env =
+            EarlyBinder(infcx.tcx.param_env(target_def_id)).subst(infcx.tcx, target_substs);
 
         if let Some(err) =
             compcx.check_type_error(tcx, target_def_id, target_param_env, orig, target)
@@ -1255,10 +1253,8 @@ fn match_inherent_impl<'tcx>(
             .translate_item_type(orig_impl_def_id, infcx.tcx.type_of(orig_impl_def_id));
 
         let target_substs = compcx.compute_target_infer_substs(target_item_def_id);
-        let target_self = infcx
-            .tcx
-            .type_of(target_impl_def_id)
-            .subst(infcx.tcx, target_substs);
+        let target_self =
+            EarlyBinder(infcx.tcx.type_of(target_impl_def_id)).subst(infcx.tcx, target_substs);
 
         let target_param_env = infcx.tcx.param_env(target_impl_def_id);
 
@@ -1316,7 +1312,7 @@ fn match_inherent_impl<'tcx>(
         let orig = compcx
             .forward_trans
             .translate_item_type(orig_item_def_id, orig);
-        let target = target.subst(infcx.tcx, target_substs);
+        let target = EarlyBinder(target).subst(infcx.tcx, target_substs);
 
         let error =
             compcx.check_type_error(tcx, target_item_def_id, target_param_env, orig, target);
