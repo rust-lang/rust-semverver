@@ -46,13 +46,13 @@ pub enum ChangeCategory {
 
 pub use self::ChangeCategory::*;
 
-impl<'a> Default for ChangeCategory {
+impl Default for ChangeCategory {
     fn default() -> Self {
         Patch
     }
 }
 
-impl<'a> fmt::Display for ChangeCategory {
+impl fmt::Display for ChangeCategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let desc = match *self {
             Patch => "patch",
