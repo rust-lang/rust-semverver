@@ -36,7 +36,7 @@ jobs:
     runs-on: ${{ matrix.builder }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup latest nightly toolchain
         run: bash ci/setup-toolchain.sh
         if: github.event_name == 'schedule'
