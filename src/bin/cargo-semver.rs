@@ -456,13 +456,13 @@ impl<'a> WorkInfo<'a> {
     ) -> Result<WorkInfo<'a>> {
         let source = {
             let source_id = SourceId::crates_io(config)?;
-            let mut source = RegistrySource::remote(source_id, &HashSet::new(), config);
+            let mut source = RegistrySource::remote(source_id, &HashSet::new(), config)?;
 
             debug!("source id loaded: {:?}", source_id);
 
             if !config.offline() {
                 let _lock = config.acquire_package_cache_lock()?;
-                source.update()?;
+                source.invalidate_cache();
             }
 
             Box::new(source)
