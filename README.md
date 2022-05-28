@@ -27,13 +27,13 @@ repository and compiled from source or installed from
 of the nightly toolchain is supported at any given time.
 
 <!-- NOTE: Keep in sync with nightly date on rust-toolchain. -->
-It's recommended to use `nightly-2022-05-16` toolchain.
-You can install it by using `rustup install nightly-2022-05-16` if you already have rustup.
+It's recommended to use `nightly-2022-05-23` toolchain.
+You can install it by using `rustup install nightly-2022-05-23` if you already have rustup.
 Then you can do:
 
 ```sh
-$ rustup component add rustc-dev llvm-tools-preview --toolchain nightly-2022-05-16
-$ cargo +nightly-2022-05-16 install --git https://github.com/rust-lang/rust-semverver
+$ rustup component add rustc-dev llvm-tools-preview --toolchain nightly-2022-05-23
+$ cargo +nightly-2022-05-23 install --git https://github.com/rust-lang/rust-semverver
 ```
 
 You'd also need `cmake` for some dependencies, and a few common libraries (if you hit
@@ -122,7 +122,7 @@ carried out correctly with regards to the current version of your crate on crate
 
 ```sh
 # install a current version of rust-semverver
-cargo +nightly-2022-05-16 install --git https://github.com/rust-lang/rust-semverver
+cargo +nightly-2022-05-23 install --git https://github.com/rust-lang/rust-semverver
 # fetch the version in the manifest of your crate (adapt this to your usecase if needed)
 eval "current_version=$(grep -e '^version = .*$' Cargo.toml | cut -d ' ' -f 3)"
 # run the semver checks and output them for convenience
