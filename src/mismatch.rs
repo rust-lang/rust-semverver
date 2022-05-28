@@ -207,7 +207,8 @@ impl<'a, 'tcx> TypeRelation<'tcx> for MismatchRelation<'a, 'tcx> {
                 None
             }
             (&TyKind::FnDef(a_def_id, a_substs), &TyKind::FnDef(b_def_id, b_substs)) => {
-                if self.check_substs(a_substs, b_substs) {
+                // NEEDSWORK: the second half of this check is more of a workaround; see #188
+                if self.check_substs(a_substs, b_substs) && !self.tcx.variances_of(a_def_id).is_empty() {
                     let a_sig = a.fn_sig(self.tcx);
                     let b_sig = b.fn_sig(self.tcx);
                     let _ = self.relate_item_substs(a_def_id, a_substs, b_substs)?;
