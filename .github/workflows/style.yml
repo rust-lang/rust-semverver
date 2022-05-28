@@ -21,7 +21,7 @@ jobs:
       - name: Shellcheck
         run: |
           shellcheck --version
-          shellcheck ci/*.sh
+          shellcheck ci/*.sh scripts/toolchain-version
 
       - name: Update nightly
         run: |

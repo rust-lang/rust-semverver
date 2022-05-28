@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -eu
+
+
+NIGHTLY_RE="nightly-[0-9]{4}-[0-9]{2}-[0-9]{2}"
+
+nightly_mentions() {
+    grep -Eo "$NIGHTLY_RE" "$1" | sort --unique
+}
+
+check_versions_match() {
+    readarray -t versions_readme < <(nightly_mentions README.md)
+    if [[ "${#versions_readme[@]}" -gt 1 ]]; then
+        echo "Multiple different nightly versions mentioned in README.md: ${versions_readme[*]}"
+        exit 1
+    fi
+
+    version_toolchain=$(nightly_mentions rust-toolchain)
+    if [[ "${versions_readme[0]}" != "${version_toolchain}" ]]; then
+        echo "Toolchain nightly version does not match README.md: ${version_toolchain} vs. ${versions_readme[0]}"
+        exit 1
+    fi
+}
+
+update_version_everywhere() {
+    if ! echo "$1" | grep -Eq "$NIGHTLY_RE"; then
+        echo "That doesn't look like a nightly version to me: '$1'"
+        exit 1
+    fi
+
+    sed -i -E -e "s#${NIGHTLY_RE}#$1#g" README.md rust-toolchain
+}
+
+
+while getopts "cu:" opt; do
+    case $opt in
+        c)
+            check_versions_match
+            ;;
+        u)
+            update_version_everywhere "$OPTARG"
+            ;;
+        *)
+            echo "Usage: $0 [-c | -u <nightly version> ]"
+            exit 1
+            ;;
+    esac
+done
