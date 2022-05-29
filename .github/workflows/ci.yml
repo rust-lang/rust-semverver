@@ -43,6 +43,38 @@ jobs:
       - name: Run tests
         run: sh ci/run.sh ${{ matrix.os }}
 
+  create_issue:
+    runs-on: ubuntu-latest
+    # the combination of these two lines seems to do the "if build_and_test failed, run this one"
+    needs: build_and_test
+    if: always() && github.event_name == 'schedule' && needs.build_and_test.result == 'failure'
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Create an issue
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          readarray -t exists < <(gh issue list --state open --label nightly-CI-failed --json number --jq '.[].number' --repo "$GITHUB_REPOSITORY")
+          if [[ -n "${exists[@]}" ]]; then
+            echo "Not opening another issue, already have ${#exists[@]} issue(s), latest at ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/issues/${exists[0]}."
+          else
+            cat << EOF | gh issue create \
+              --label nightly-CI-failed \
+              --title "Nightly CI run failed" \
+              --repo "$GITHUB_REPOSITORY" \
+              --body-file -
+            The nightly CI run on $(date +%F) seems to have failed.
+
+            - Check the logs at ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${{ github.run_id }}
+            - Update to the latest 'rustc-nightly' if necessary
+            - Investigate test run failures if any
+          EOF
+          fi
+
   # https://forge.rust-lang.org/infra/docs/bors.html#adding-a-new-repository-to-bors
   build_result:
     name: bors build finished
