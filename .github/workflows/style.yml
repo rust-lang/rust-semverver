@@ -21,7 +21,7 @@ jobs:
       - name: Shellcheck
         run: |
           shellcheck --version
-          shellcheck ci/*.sh
+          shellcheck ci/*.sh scripts/toolchain-version
 
       - name: Update nightly
         run: |
@@ -38,3 +38,12 @@ jobs:
           if rustup component add clippy rustc-dev; then
               cargo clippy --all
           fi
+
+  version_consistency_check:
+    name: Toolchain version consistency check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Toolchain version consistency check
+        run: scripts/toolchain-version -c
+
