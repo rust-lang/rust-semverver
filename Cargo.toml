@@ -8,7 +8,7 @@ categories = ["development-tools", "development-tools::cargo-plugins"]
 version = "0.1.50"
 authors = ["Inokentiy Babushkin <twk@twki.de>"]
 license-file = "LICENSE"
-edition = "2018"
+edition = "2021"
 exclude = ["/ci/*", "/.github/*", "/doc"]
 
 [dependencies]
