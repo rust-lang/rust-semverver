@@ -8,7 +8,8 @@ use rustc_infer::infer::InferCtxt;
 use rustc_middle::ty::{
     fold::{BottomUpFolder, TypeFoldable, TypeFolder},
     subst::{GenericArg, InternalSubsts, SubstsRef},
-    GenericParamDefKind, ParamEnv, Predicate, Region, Term, TraitRef, Ty, TyCtxt, Unevaluated,
+    GenericParamDefKind, ParamEnv, Predicate, Region, Term, TraitRef, Ty, TyCtxt,
+    TypeSuperFoldable, Unevaluated,
 };
 use std::collections::HashMap;
 
