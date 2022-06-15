@@ -218,7 +218,7 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
         target: Ty<'tcx>,
     ) -> Option<TypeError<'tcx2>> {
         use rustc_infer::infer::outlives::env::OutlivesEnvironment;
-        use rustc_infer::infer::{InferOk, RegionckMode};
+        use rustc_infer::infer::InferOk;
         use rustc_middle::ty::Lift;
 
         let error = self.infcx.commit_if_ok(|snapshot| {
@@ -248,11 +248,8 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
             //      self.relate_regions(r_b, r_a);
             //  }
 
-            self.infcx.resolve_regions_and_report_errors(
-                target_def_id,
-                &outlives_env,
-                RegionckMode::default(),
-            );
+            self.infcx
+                .resolve_regions_and_report_errors(target_def_id, &outlives_env);
 
             let err = self
                 .infcx
