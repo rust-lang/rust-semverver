@@ -28,6 +28,7 @@ proc-macro2 = "1.0.32"
 quickcheck = { version = "1.0", default-features = false }
 
 [package.metadata.rust-analyzer]
-# This crate uses `#![feature(rustc_private)]`
+# Needed as this crate uses `#![feature(rustc_private)]`
 # cf. https://github.com/rust-analyzer/rust-analyzer/pull/7891
+# Also, set `rust-analyzer.rustc.source` to "discover" with `rustc-dev` installed on your local.
 rustc_private = true
