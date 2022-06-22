@@ -334,8 +334,8 @@ impl<'a, 'tcx> TranslationContext<'a, 'tcx> {
     /// Translate a region.
     fn translate_region(&self, region: Region<'tcx>) -> Region<'tcx> {
         use rustc_middle::ty::BoundRegionKind::*;
-        use rustc_middle::ty::RegionKind::*;
         use rustc_middle::ty::{EarlyBoundRegion, FreeRegion};
+        use rustc_type_ir::RegionKind::*;
 
         if !self.translate_params {
             return region;
