@@ -12,7 +12,7 @@ edition = "2021"
 exclude = ["/ci/*", "/.github/*", "/doc"]
 
 [dependencies]
-cargo = "0.62"
+cargo = "0.63"
 crates-io = "0.34" # Keep in sync with version pulled by Cargo
 curl = "0.4.43"
 env_logger = "0.9"
