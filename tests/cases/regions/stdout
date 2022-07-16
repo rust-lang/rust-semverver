@@ -3,7 +3,7 @@ error: breaking changes in `D`
  --> regions/new.rs:9:1
   |
 9 | pub type D<T: IntoIterator> = <T as IntoIterator>::IntoIter;
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = warning: type error: expected std::iter::IntoIterator::Item, found std::iter::IntoIterator::IntoIter (breaking)
 
@@ -11,7 +11,7 @@ error: breaking changes in `E`
   --> regions/new.rs:11:1
    |
 11 | pub type E<T: IntoIterator> = T;
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = warning: type error: expected associated type, found type parameter `T` (breaking)
 
@@ -48,3 +48,4 @@ error: breaking changes in `fgh`
    = warning: type error: one type is more general than the other (breaking)
 
 error: aborting due to 6 previous errors
+

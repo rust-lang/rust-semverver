@@ -2,10 +2,8 @@ version bump: 1.0.0 -> (breaking) -> 2.0.0
 error: breaking changes in `Abc`
  --> enums/new.rs:1:1
   |
-1 | / pub enum Abc {
-2 | |     Abc,
-3 | | }
-  | |_^
+1 | pub enum Abc {
+  | ^^^^^^^^^^^^
   |
 warning: enum variant added (breaking)
  --> enums/new.rs:2:5
@@ -16,10 +14,8 @@ warning: enum variant added (breaking)
 error: breaking changes in `Bcd`
  --> enums/new.rs:5:1
   |
-5 | / pub enum Bcd {
-6 | |
-7 | | }
-  | |_^
+5 | pub enum Bcd {
+  | ^^^^^^^^^^^^
   |
 warning: enum variant removed (breaking)
  --> enums/old.rs:6:5
@@ -30,11 +26,8 @@ warning: enum variant removed (breaking)
 error: breaking changes in `Cde`
   --> enums/new.rs:9:1
    |
-9  | / pub enum Cde {
-10 | |     Abc,
-11 | |     Bcd,
-12 | | }
-   | |_^
+9  | pub enum Cde {
+   | ^^^^^^^^^^^^
    |
 warning: enum variant added (breaking)
   --> enums/new.rs:11:5
@@ -45,10 +38,8 @@ warning: enum variant added (breaking)
 error: breaking changes in `Def`
   --> enums/new.rs:14:1
    |
-14 | / pub enum Def {
-15 | |     Abc,
-16 | | }
-   | |_^
+14 | pub enum Def {
+   | ^^^^^^^^^^^^
    |
 warning: enum variant removed (breaking)
   --> enums/old.rs:15:5
@@ -59,20 +50,14 @@ warning: enum variant removed (breaking)
 error: breaking changes in `Efg`
   --> enums/new.rs:18:1
    |
-18 | / pub enum Efg {
-19 | |     Abc(u8),
-20 | |     Bcd,
-21 | |     Cde { f: u8 },
-...  |
-25 | |     Ghi { g: u8 },
-26 | | }
-   | |_^
+18 | pub enum Efg {
+   | ^^^^^^^^^^^^
    |
 warning: variant with no public fields changed to a tuple variant (breaking)
   --> enums/new.rs:19:5
    |
 19 |     Abc(u8),
-   |     ^^^^^^^
+   |     ^^^
 warning: variant with public fields changed to a tuple variant (breaking)
   --> enums/new.rs:20:5
    |
@@ -82,7 +67,7 @@ warning: variant with public fields changed to a struct variant (breaking)
   --> enums/new.rs:21:5
    |
 21 |     Cde { f: u8 },
-   |     ^^^^^^^^^^^^^
+   |     ^^^
 warning: variant with public fields changed to a tuple variant (breaking)
   --> enums/new.rs:22:5
    |
@@ -92,7 +77,7 @@ warning: variant with public fields changed to a struct variant (breaking)
   --> enums/new.rs:23:5
    |
 23 |     Efg { f: u8 },
-   |     ^^^^^^^^^^^^^
+   |     ^^^
 warning: public field removed from variant with no private fields (breaking)
   --> enums/old.rs:25:11
    |
