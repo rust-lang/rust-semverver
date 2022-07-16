@@ -3,7 +3,7 @@ error: path changes to `Abc`
   --> removal_path/new.rs:2:5
    |
 2  |     pub struct Abc;
-   |     ^^^^^^^^^^^^^^^
+   |     ^^^^^^^^^^^^^^
    |
 warning: removed path (breaking)
   --> removal_path/old.rs:6:13
@@ -22,3 +22,4 @@ warning: removed path (breaking)
    |         ^^^^^^^^^^^^
 
 error: aborting due to previous error
+

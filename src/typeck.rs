@@ -248,8 +248,10 @@ impl<'a, 'tcx> TypeComparisonContext<'a, 'tcx> {
             //      self.relate_regions(r_b, r_a);
             //  }
 
-            self.infcx
-                .resolve_regions_and_report_errors(target_def_id, &outlives_env);
+            if let Some(local_did) = target_def_id.as_local() {
+                self.infcx
+                    .resolve_regions_and_report_errors(local_did, &outlives_env);
+            }
 
             let err = self
                 .infcx

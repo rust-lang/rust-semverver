@@ -3,7 +3,7 @@ warning: path changes to `Abc`
   --> addition_path/new.rs:2:5
    |
 2  |     pub struct Abc;
-   |     ^^^^^^^^^^^^^^^
+   |     ^^^^^^^^^^^^^^
    |
 note: added path (technically breaking)
   --> addition_path/new.rs:6:13
@@ -24,10 +24,8 @@ note: added path (technically breaking)
 warning: path changes to `d`
   --> addition_path/new.rs:15:1
    |
-15 | / pub mod d {
-16 | |
-17 | | }
-   | |_^
+15 | pub mod d {
+   | ^^^^^^^^^
    |
    = note: added definition (technically breaking)
 

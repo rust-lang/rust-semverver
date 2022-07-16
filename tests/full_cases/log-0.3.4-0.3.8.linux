@@ -154,7 +154,7 @@ warning: path changes to `ShutdownLoggerError`
    --> log-0.3.8/src/lib.rs:797:1
     |
 797 | pub struct ShutdownLoggerError(());
-    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
     = note: added definition (technically breaking)
 

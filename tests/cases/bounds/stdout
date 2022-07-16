@@ -2,20 +2,16 @@ version bump: 1.0.0 -> (breaking) -> 2.0.0
 error: breaking changes in `Abc`
  --> bounds/new.rs:1:1
   |
-1 | / pub struct Abc<A: Clone> {
-2 | |     pub a: A,
-3 | | }
-  | |_^
+1 | pub struct Abc<A: Clone> {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = warning: added bound: `A: std::clone::Clone` (breaking)
 
 warning: technically breaking changes in `Def`
  --> bounds/new.rs:5:1
   |
-5 | / pub struct Def<A> {
-6 | |     pub d: A,
-7 | | }
-  | |_^
+5 | pub struct Def<A> {
+  | ^^^^^^^^^^^^^^^^^
   |
   = note: removed bound: `A: std::clone::Clone` (technically breaking)
 
@@ -36,3 +32,4 @@ warning: technically breaking changes in `def`
    = note: removed bound: `A: std::clone::Clone` (technically breaking)
 
 error: aborting due to 2 previous errors; 2 warnings emitted
+

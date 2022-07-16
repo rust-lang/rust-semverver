@@ -2,26 +2,16 @@ version bump: 0.4.0 -> (breaking) -> 0.4.1
 error: breaking changes in `<old::decode::Error as std::convert::From<rmp::decode::MarkerReadError>>`
   --> rmpv-0.4.0\src\decode\mod.rs:60:1
    |
-60 | / impl From<MarkerReadError> for Error {
-61 | |     fn from(err: MarkerReadError) -> Error {
-62 | |         Error::InvalidMarkerRead(err.0)
-63 | |     }
-64 | | }
-   | |_^
+60 | impl From<MarkerReadError> for Error {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = warning: trait impl specialized or removed (breaking)
 
 error: breaking changes in `<old::decode::Error as std::convert::From<rmp::decode::ValueReadError>>`
   --> rmpv-0.4.0\src\decode\mod.rs:66:1
    |
-66 | / impl From<ValueReadError> for Error {
-67 | |     fn from(err: ValueReadError) -> Error {
-68 | |         match err {
-69 | |             ValueReadError::InvalidMarkerRead(err) => Error::InvalidMarkerRead(err),
-...  |
-75 | |     }
-76 | | }
-   | |_^
+66 | impl From<ValueReadError> for Error {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = warning: trait impl specialized or removed (breaking)
 
@@ -62,26 +52,16 @@ warning: technically breaking changes in `as_ref`
 warning: technically breaking changes in `<new::decode::Error as std::convert::From<rmp::decode::MarkerReadError>>`
   --> rmpv-0.4.1\src\decode\mod.rs:60:1
    |
-60 | / impl From<MarkerReadError> for Error {
-61 | |     fn from(err: MarkerReadError) -> Error {
-62 | |         Error::InvalidMarkerRead(err.0)
-63 | |     }
-64 | | }
-   | |_^
+60 | impl From<MarkerReadError> for Error {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: trait impl generalized or newly added (technically breaking)
 
 warning: technically breaking changes in `<new::decode::Error as std::convert::From<rmp::decode::ValueReadError>>`
   --> rmpv-0.4.1\src\decode\mod.rs:66:1
    |
-66 | / impl From<ValueReadError> for Error {
-67 | |     fn from(err: ValueReadError) -> Error {
-68 | |         match err {
-69 | |             ValueReadError::InvalidMarkerRead(err) => Error::InvalidMarkerRead(err),
-...  |
-75 | |     }
-76 | | }
-   | |_^
+66 | impl From<ValueReadError> for Error {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: trait impl generalized or newly added (technically breaking)
 
