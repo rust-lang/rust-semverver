@@ -441,9 +441,9 @@ warning: technically breaking changes in `<new::Value as serde::de::Deserialize<
 error: breaking changes in `<old::file::format::ALL_EXTENSIONS as lazy_static::LazyStatic>`
   --> config-0.13.0\src\file\format\mod.rs:60:1
    |
-60 | \ lazy_static! {
+60 | / lazy_static! {
 61 | |     #[doc(hidden)]
-62 | |     \\ #[allow(unused_mut)] ?
+62 | |     // #[allow(unused_mut)] ?
 63 | |     pub static ref ALL_EXTENSIONS: HashMap<FileFormat, Vec<&'static str>> = {
 ...  |
 85 | |     };
@@ -456,9 +456,9 @@ error: breaking changes in `<old::file::format::ALL_EXTENSIONS as lazy_static::L
 warning: technically breaking changes in `<new::file::format::ALL_EXTENSIONS as lazy_static::LazyStatic>`
   --> config-0.13.1\src\file\format\mod.rs:60:1
    |
-60 | \ lazy_static! {
+60 | / lazy_static! {
 61 | |     #[doc(hidden)]
-62 | |     \\ #[allow(unused_mut)] ?
+62 | |     // #[allow(unused_mut)] ?
 63 | |     pub static ref ALL_EXTENSIONS: HashMap<FileFormat, Vec<&'static str>> = {
 ...  |
 85 | |     };
