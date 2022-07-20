@@ -451,7 +451,7 @@ error: breaking changes in `<old::file::format::ALL_EXTENSIONS as lazy_static::L
    | |_^
    |
    = warning: trait impl specialized or removed (breaking)
-   = note: this error originates in the macro `__lazy_static_internal` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: this error originates in the macro `__lazy_static_internal` which comes from the expansion of the macro `lazy_static` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 warning: technically breaking changes in `<new::file::format::ALL_EXTENSIONS as lazy_static::LazyStatic>`
   --> config-0.13.1/src/file/format/mod.rs:60:1
@@ -466,7 +466,7 @@ warning: technically breaking changes in `<new::file::format::ALL_EXTENSIONS as 
    | |_^
    |
    = note: trait impl generalized or newly added (technically breaking)
-   = note: this warning originates in the macro `__lazy_static_internal` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: this warning originates in the macro `__lazy_static_internal` which comes from the expansion of the macro `lazy_static` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: aborting due to 33 previous errors; 23 warnings emitted
 
