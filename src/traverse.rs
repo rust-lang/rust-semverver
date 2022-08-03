@@ -389,8 +389,8 @@ fn diff_method<'tcx>(changes: &mut ChangeSet, tcx: TyCtxt<'tcx>, old: AssocItem,
         );
     }
 
-    let old_pub = old.vis == Public;
-    let new_pub = new.vis == Public;
+    let old_pub = old.visibility(tcx) == Public;
+    let new_pub = new.visibility(tcx) == Public;
 
     if old_pub && !new_pub {
         changes.add_change(ChangeType::ItemMadePrivate, old.def_id, None);
@@ -655,14 +655,14 @@ fn diff_traits<'tcx>(
             }
             (Some(old_item), None) => {
                 let change_type = ChangeType::TraitItemRemoved {
-                    defaulted: old_item.defaultness.has_value(),
+                    defaulted: old_item.defaultness(tcx).has_value(),
                 };
                 changes.add_change(change_type, old, Some(tcx.def_span(old_item.def_id)));
                 id_mapping.add_non_mapped(old_item.def_id);
             }
             (None, Some(new_item)) => {
                 let change_type = ChangeType::TraitItemAdded {
-                    defaulted: new_item.defaultness.has_value(),
+                    defaulted: new_item.defaultness(tcx).has_value(),
                     sealed_trait: old_sealed,
                 };
                 changes.add_change(change_type, old, Some(tcx.def_span(new_item.def_id)));
@@ -1061,7 +1061,7 @@ fn diff_inherent_impls<'tcx>(
                 orig_item.name,
                 item_span,
                 item_span,
-                parent_output && orig_assoc_item.vis == Public,
+                parent_output && orig_assoc_item.visibility(tcx) == Public,
             );
 
             // ... determine the set of target impls that serve as candidates
@@ -1082,7 +1082,7 @@ fn diff_inherent_impls<'tcx>(
                     .any(|&(target_impl_def_id, target_item_def_id)| {
                         let target_assoc_item = tcx.associated_item(target_item_def_id);
 
-                        if parent_output && target_assoc_item.vis == Public {
+                        if parent_output && target_assoc_item.visibility(tcx) == Public {
                             changes.set_output(orig_item.parent_def_id);
                         }
 
