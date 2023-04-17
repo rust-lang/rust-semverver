@@ -1,5 +1,13 @@
 # rust-semverver
 
+## Deprecation notice
+
+This crate has been deprecated, check the crates below for alternatives:
+- https://github.com/obi1kenobi/cargo-semver-checks
+- https://github.com/Enselic/cargo-public-api
+
+---
+
 [![Build Status](https://github.com/rust-lang/rust-semverver/workflows/CI/badge.svg?branch=master)](https://github.com/rust-lang/rust-semverver/actions?query=workflow%3ACI+branch%3Amaster)
 [![Current Version](https://img.shields.io/crates/v/semverver.svg)](https://crates.io/crates/semverver)
 
